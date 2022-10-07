@@ -103,16 +103,38 @@ class Scene {
         this.defaultArea = area;
     }
 
+    isInFrame (x, y) {
+        var frameWidth = 100;
+        var xOut = x <= frameWidth || x >= bufferSize - frameWidth;
+        var yOut = y <= frameWidth || y >= bufferSize - frameWidth;
+
+        if (xOut || yOut) {
+            return true;
+        }
+        return false;
+    }
+
     isLeftArea (area) {
-        return this.defaultArea !== area;
+        return this.defaultArea !== area
+    }
+
+    getAreaSuper (x, y) {
+        var area = this.getArea(x, y);
+        var inFrame = this.isInFrame(x, y);
+
+        if (inFrame) {
+            return (area + 2) % 4;
+        }
+        return area;
     }
 
     getPointStyle (x, y) {
-        var area = this.getArea(x, y);
+        var area = this.getAreaSuper(x, y);
         var noiseGenerator = this.noiseByArea[area];
         var noiseVal = noiseGenerator.get(x, y);
         
-        var color = this.getColor(noiseVal, area, noiseGenerator);
+        var inFrame = this.isInFrame(x, y);
+        var color = this.getColor(noiseVal, area, inFrame, noiseGenerator);
  
         return {
             "area": area,
@@ -133,19 +155,22 @@ class Scene {
 
     getAreaByDelimeter (x, y) {
         var h1 = this.delimeterNoise.get(x, y);
-
+        var del = 0;
         for (var perc of this.delimeterPercentiles) {
             var v1 = perc[0];
             var v2 = perc[1];
             if (h1 < this.delimeterNoise.getPercentile(v2) & h1 > this.delimeterNoise.getPercentile(v1)) {
-                return 1;
+                del = 1;
             }
         }
+        // if (this.isInFrame(x, y)) {
+        //     del = (del + 1) % 2;
+        // }
 
-        return 0;
+        return del;
     }
 
-    getColor (height, area, noiseGenerator) {
+    getColor (height, area, inFrame, noiseGenerator) {
         var riverPercentiles = [0.15, 0.35];
         var isRiver = false;
         var p1, p2;
@@ -155,6 +180,10 @@ class Scene {
         if (height >= p1 & height <= p2) {
             isRiver = true;
         }
+
+        // if (inFrame) {
+        //     isRiver = !isRiver;
+        // }
 
         var isReverted = this.colorByIsRiver[isRiver][area];
 

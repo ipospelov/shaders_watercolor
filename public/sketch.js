@@ -1,6 +1,7 @@
 var buffer;
 var myCanvas;
 var bufferSize = 2000;
+var scaleSize = 2000;
 var windowEdgeSize;
 
 var xi = 0;
