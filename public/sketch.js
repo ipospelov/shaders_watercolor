@@ -24,13 +24,6 @@ var ranges = [
     [19, 21],
 ]
 
-var nStills = 60;
-var currStill = 0;
-
-fxrand = function () {
-    return Math.random();
-}
-
 function setup() {
     frameRate(60);
 
@@ -60,12 +53,6 @@ function setup() {
     buffer.background(0);
     console.log('Made with 🤍 by @ivposure');
 };
-
-function reinit() {
-    reinitFeatures();
-    palette = palettes[paletteIndex];
-    myScene = new sceneClass();
-}
 
 function windowResized() {
     windowEdgeSize = Math.min(windowWidth, windowHeight);
@@ -142,29 +129,11 @@ function drawIsoline (x, y) {
 
 function draw() {      
     if (nCurr >= nIters) {
-        // if (!isCaptured) {
-        //     fxpreview();
-        //     isCaptured = true;
-        // }
-        // return;
-
-        if (currStill >= nStills) {
-            return;
+        if (!isCaptured) {
+            fxpreview();
+            isCaptured = true;
         }
-
-        saveCanvas(myCanvas, `corriente_${currStill}`, 'png');
-
-        currStill++;
-        nCurr = 0;
-        xi = 0;
-        yi = 0;
-
-        buffer.background(0);
-        noiseSeed(fxRandRanged(0, 200));
-
-        reinit();
-
-        console.log(`evaulated ${currStill}`);
+        return;
     }
 
     var range = ranges[nCurr];
@@ -201,6 +170,6 @@ function draw() {
 
 function keyTyped() {
     if (key === 's') {
-        saveCanvas(myCanvas, 'flows', 'png');
+        saveCanvas(myCanvas, 'flowers', 'png');
     }
 };
