@@ -118,23 +118,19 @@ class Scene {
         return this.defaultArea !== area
     }
 
-    getAreaSuper (x, y) {
-        var area = this.getArea(x, y);
-        var inFrame = this.isInFrame(x, y);
-
-        if (inFrame) {
-            return (area + 2) % 4;
-        }
-        return area;
-    }
-
     getPointStyle (x, y) {
         var area = this.getAreaSuper(x, y);
         var noiseGenerator = this.noiseByArea[area];
         var noiseVal = noiseGenerator.get(x, y);
         
         var inFrame = this.isInFrame(x, y);
-        var color = this.getColor(noiseVal, area, inFrame, noiseGenerator);
+
+        if (!inFrame) {
+            var color = this.getColor(noiseVal, area, noiseGenerator);
+        } else {
+            var color = [255, 255, 255];
+        }
+        
  
         return {
             "area": area,
@@ -153,6 +149,16 @@ class Scene {
         return this.getAreaByDelimeter(x, y);
     }
 
+    getAreaSuper (x, y) {
+        var area = this.getArea(x, y);
+        // var inFrame = this.isInFrame(x, y);
+
+        // if (inFrame) {
+        //     return (area + 1) % 4;
+        // }
+        return area;
+    }
+
     getAreaByDelimeter (x, y) {
         var h1 = this.delimeterNoise.get(x, y);
         var del = 0;
@@ -163,14 +169,11 @@ class Scene {
                 del = 1;
             }
         }
-        // if (this.isInFrame(x, y)) {
-        //     del = (del + 1) % 2;
-        // }
 
         return del;
     }
 
-    getColor (height, area, inFrame, noiseGenerator) {
+    getColor (height, area, noiseGenerator) {
         var riverPercentiles = [0.15, 0.35];
         var isRiver = false;
         var p1, p2;
@@ -180,10 +183,6 @@ class Scene {
         if (height >= p1 & height <= p2) {
             isRiver = true;
         }
-
-        // if (inFrame) {
-        //     isRiver = !isRiver;
-        // }
 
         var isReverted = this.colorByIsRiver[isRiver][area];
 
@@ -556,5 +555,63 @@ class FlowDelimiterScene3 extends FlowDelimiterScene {
 
     static toString () {
         return "Flow scene 4";
+    }
+}
+
+
+class RevertNoiseCache extends NoiseCache {
+    get (x, y) {
+        return noise(y * this.step + this.seedStep, x * this.step + this.seedStep) * this.coef;
+    }
+}
+class FlowDelimiterScene4 extends DoubleFlowDelimiterScene {
+    constructor () {
+        super();
+
+        this.flowDel = new NoiseCache(0.000009);
+        this.flowDel2 = new RevertNoiseCache(0.000009);
+        this.percentiles = [
+            [0.1, 0.2],
+            [0.3, 0.4],
+            [0.6, 0.7],
+            [0.9, 1],
+        ]
+        this.percentiles2 = [
+            [0.2, 0.3],
+            [0.5, 0.6],
+            [0.7, 0.9],
+        ]
+    }
+
+    getArea (x, y) {
+        var isFlow = this.getAreaByDelimeter(x, y);
+
+        var h = this.flowDel.get(x, y);
+        var h2 = this.flowDel2.get(x, y);
+
+        var acc = 0;
+
+        for (var perc of this.percentiles) {
+            var v1 = perc[0];
+            var v2 = perc[1];
+            if (h < this.flowDel.getPercentile(v2) & h >= this.flowDel.getPercentile(v1)) {
+                acc += 1;
+                break;
+            }
+        }
+        for (var perc of this.percentiles2) {
+            var v1 = perc[0];
+            var v2 = perc[1];
+            if (h2 < this.flowDel2.getPercentile(v2) & h2 >= this.flowDel2.getPercentile(v1)) {
+                acc += 1;
+                break;
+            }
+        }
+
+        return isFlow + acc;
+    }
+
+    static toString () {
+        return "Flow scene 5";
     }
 }
