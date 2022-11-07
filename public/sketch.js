@@ -79,7 +79,7 @@ function getPhi(x, y) {
 }
 
 function getDecart (ro, phi) {
-    return [ro * Math.cos(phi), ro * Math.sin(phi)];
+    return [ro * Math.cos(phi) + bufferSize / 2, ro * Math.sin(phi) + bufferSize / 2];
 }
 
 function drawIsoline (x, y) {
@@ -104,9 +104,9 @@ function drawIsoline (x, y) {
     var randCoef = ro / (bufferSize / 2);
     var alpha = map(randCoef, 0, 1, 255, 35);
 
-    var sw = map(randCoef, 0, 1, 3, 1);
+    //var sw = map(randCoef, 0, 1, 2, 0.5);
 
-    buffer.strokeWeight(sw);
+    buffer.strokeWeight(0.8);
 
     buffer.stroke(...pointStyle["color"], alpha);
 
@@ -122,15 +122,24 @@ function drawIsoline (x, y) {
             break;
         }
 
-        //var phi = getPhi(x - bufferSize / 2, y - bufferSize / 2);
-        //var randCoef = noise(ro * 0.0001, phi * 0.001);
+        var phi = getPhi(x - bufferSize / 2, y - bufferSize / 2);
+        var ro = Math.sqrt((x - bufferSize / 2) ** 2 + (y - bufferSize / 2) ** 2);
 
-        var ro = Math.sqrt((x - bufferSize / 2)** 2 + (y - bufferSize / 2) ** 2);
-        var randCoef = ro / (bufferSize / 2);
-        var rx = fxRandRanged(-20, 20) * randCoef;
-        var ry = fxRandRanged(-20, 20) * randCoef;
+        var randCoef = noise(ro, phi * 0.01);
+        randCoef = map(randCoef, 0, 1, -1, 1) / 10;
 
-        buffer.curveVertex(x + rx, y + ry);
+        var radiusCoef = ro / (bufferSize / 2);
+
+        var [rx, ry] = getDecart(ro, phi + randCoef * radiusCoef);
+
+
+        var randCoef = map(ro / (bufferSize / 2), 0, 1, 0, 0.5);
+        var randX = fxRandRanged(-20, 20) * randCoef;
+        var randY = fxRandRanged(-20, 20) * randCoef;
+
+        buffer.curveVertex(rx + randX, ry + randY);
+
+        
         if (style == "flow") {
             var noiseVal = pointStyle["noise"];
             var ang = map(noiseVal, 0, 1, 0, Math.PI * 2);
