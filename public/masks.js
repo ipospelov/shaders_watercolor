@@ -104,7 +104,6 @@ class Scene {
     }
 
     isInFrame (x, y) {
-        var frameWidth = 100;
         var xOut = x <= frameWidth || x >= bufferSize - frameWidth;
         var yOut = y <= frameWidth || y >= bufferSize - frameWidth;
 
@@ -128,7 +127,7 @@ class Scene {
         if (!inFrame) {
             var color = this.getColor(noiseVal, area, noiseGenerator);
         } else {
-            var color = [255, 255, 255];
+            var color = [0, 0, 0];
         }
         
  

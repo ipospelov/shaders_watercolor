@@ -1,6 +1,7 @@
 var buffer;
 var myCanvas;
 var bufferSize = 2000;
+var frameWidth = 150;
 var windowEdgeSize;
 
 var xi = 0;
@@ -64,7 +65,28 @@ function windowResized() {
     image(buffer, 0, 0);
 };
 
+function getPhi(x, y) {
+    if (x > 0 & y >= 0) {
+        return Math.atan(y / x);
+    }
+    if (x > 0 & y < 0) {
+        return Math.atan(y / x) + Math.PI * 2;
+    }
+    if (x < 0) {
+        return Math.atan(y / x) + Math.PI;
+    }
+    return Math.PI / 2;
+}
+
+function getDecart (ro, phi) {
+    return [ro * Math.cos(phi), ro * Math.sin(phi)];
+}
+
 function drawIsoline (x, y) {
+    if (myScene.isInFrame(x, y)) {
+        return;
+    }
+
     var r = 3;
     var xNext, yNext, angleNext, prevAngle;
     
@@ -75,10 +97,18 @@ function drawIsoline (x, y) {
     myScene.setDefaultArea(defaultArea);
 
     buffer.noFill();
-    buffer.strokeWeight(0.5);
+    //buffer.strokeWeight(0.8);
     buffer.beginShape();
     
-    buffer.stroke(...pointStyle["color"]);
+    var ro = Math.sqrt((x - bufferSize / 2)** 2 + (y - bufferSize / 2) ** 2);
+    var randCoef = ro / (bufferSize / 2);
+    var alpha = map(randCoef, 0, 1, 255, 35);
+
+    var sw = map(randCoef, 0, 1, 3, 1);
+
+    buffer.strokeWeight(sw);
+
+    buffer.stroke(...pointStyle["color"], alpha);
 
     for (i = 0; i < 50; i++) {
         var minDiff = Infinity;
@@ -92,7 +122,15 @@ function drawIsoline (x, y) {
             break;
         }
 
-        buffer.curveVertex(x, y);
+        //var phi = getPhi(x - bufferSize / 2, y - bufferSize / 2);
+        //var randCoef = noise(ro * 0.0001, phi * 0.001);
+
+        var ro = Math.sqrt((x - bufferSize / 2)** 2 + (y - bufferSize / 2) ** 2);
+        var randCoef = ro / (bufferSize / 2);
+        var rx = fxRandRanged(-20, 20) * randCoef;
+        var ry = fxRandRanged(-20, 20) * randCoef;
+
+        buffer.curveVertex(x + rx, y + ry);
         if (style == "flow") {
             var noiseVal = pointStyle["noise"];
             var ang = map(noiseVal, 0, 1, 0, Math.PI * 2);
@@ -146,7 +184,7 @@ function draw() {
         
         xi += fxRandRanged(...range);
         if (xi > bufferSize) {
-            xi = fxRandRanged(-10, 0);
+            xi = fxRandRanged(-10, 0) ;
             yi += fxRandRanged(...range);
         }
         if (yi >= bufferSize + 100) {
