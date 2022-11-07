@@ -32,8 +32,8 @@ class NoiseCache {
             
         var values = []
         var step = 10;
-        for (var x = 0; x < bufferSize; x += step) {
-            for (var y = 0; y < bufferSize; y += step) {
+        for (var x = 0; x < xBufferSize; x += step) {
+            for (var y = 0; y < yBufferSize; y += step) {
                 values.push(this.get(x, y));
             }
         }
@@ -104,8 +104,8 @@ class Scene {
     }
 
     isInFrame (x, y) {
-        var xOut = x <= frameWidth || x >= bufferSize - frameWidth;
-        var yOut = y <= frameWidth || y >= bufferSize - frameWidth;
+        var xOut = x <= frameWidth || x >= xBufferSize - frameWidth;
+        var yOut = y <= frameWidth || y >= yBufferSize - frameWidth;
 
         if (xOut || yOut) {
             return true;
@@ -241,7 +241,7 @@ class HorizontalScene extends Scene {
         super();
 
         this.nLines = fxRandRanged(4, 20);
-        this.margin = Math.floor(bufferSize / this.nLines);
+        this.margin = Math.floor(yBufferSize / this.nLines);
     }
 
     static toString () {
@@ -271,8 +271,8 @@ class ManySpiralScene extends Scene {
     getArea (x, y) {
         var isFlow = this.getAreaByDelimeter(x, y);
 
-        var xc = x - bufferSize / 2 - this.xCenter;
-        var yc = y - bufferSize / 2 - this.yCenter;
+        var xc = x - xBufferSize / 2 - this.xCenter;
+        var yc = y - yBufferSize / 2 - this.yCenter;
         var r = Math.sqrt(xc ** 2 + yc ** 2);
 
         var axc = Math.abs(xc);
@@ -290,7 +290,7 @@ class ManySpiralScene extends Scene {
         
         var spiralWidth = 150;
         var angCoef = (ang + 2) / (2 * Math.PI);
-        for (var i = this.rStep; i < bufferSize * 2; i += this.rStep) {
+        for (var i = this.rStep; i < yBufferSize * 2; i += this.rStep) {
             if (r > i * angCoef & r < (i + spiralWidth) * angCoef) {
                 return isFlow + 2;
             }
@@ -316,8 +316,8 @@ class SnailSpiralScene extends Scene {
     getArea (x, y) {
         var isFlow = this.getAreaByDelimeter(x, y);
 
-        var xc = x - bufferSize / 2 - this.xCenter;
-        var yc = y - bufferSize / 2 - this.yCenter;
+        var xc = x - xBufferSize / 2 - this.xCenter;
+        var yc = y - yBufferSize / 2 - this.yCenter;
         var r = Math.sqrt(xc ** 2 + yc ** 2);
 
         var axc = Math.abs(xc);
@@ -335,7 +335,7 @@ class SnailSpiralScene extends Scene {
         
         var spiralWidth = 250;
         var angCoef = (ang) / (2 * Math.PI);
-        for (var i = this.rStep; i < bufferSize * 2; i += this.rStep) {
+        for (var i = this.rStep; i < yBufferSize * 2; i += this.rStep) {
             var r1 = i * angCoef + i;
             var r2 = (i + spiralWidth) * angCoef + i;
             if (r > r1 & r < r2) {
@@ -364,8 +364,8 @@ class ExtraSpiralScene extends Scene {
     getArea (x, y) {
         var isFlow = this.getAreaByDelimeter(x, y);
 
-        var xc = x - bufferSize / 2 - this.xCenter;
-        var yc = y - bufferSize / 2 - this.yCenter;
+        var xc = x - xBufferSize / 2 - this.xCenter;
+        var yc = y - yBufferSize / 2 - this.yCenter;
         var r = Math.sqrt(xc ** 2 + yc ** 2);
 
         var axc = Math.abs(xc);
@@ -382,7 +382,7 @@ class ExtraSpiralScene extends Scene {
         }
         
         var angCoef = (ang) / (2 * Math.PI);
-        for (var i = this.rStep; i < bufferSize * 2; i += this.rStep) {
+        for (var i = this.rStep; i < yBufferSize * 2; i += this.rStep) {
             var r1 = i * angCoef + i * Math.abs(Math.sin(i));
             var r2 = (i + this.spiralWidth) * angCoef + i * Math.abs(Math.sin(i));
             if (r > r1 & r < r2) {

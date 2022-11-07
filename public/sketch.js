@@ -1,13 +1,13 @@
 var buffer;
 var myCanvas;
-var bufferSize = 2000;
+var xBufferSize = 2000;
+var ratio = 1.25;
+var yBufferSize = xBufferSize * ratio;
 var frameWidth = 150;
 var windowEdgeSize;
 
 var xi = 0;
 var yi = 0;
-var nIters = 6;
-var nCurr = 0;
 
 var palette;
 
@@ -16,51 +16,83 @@ var loadingBuffer;
 
 var myScene;
 
-var ranges = [
-    [15, 15],
-    [20, 20],
-    [17, 15],
-    [15, 17],
-    [21, 19],
-    [19, 21],
+var stages = [
+    {
+        "stage": "pre-noise",
+        "iters": 0,//3,
+        "title": "Stage 1/4 - paper texturing"
+    },
+    {
+        "stage": "structure",
+        "iters": 0,
+        "title": "Stage 2/4 - loading frame"
+    },
+    {
+        "stage": "drawing",
+        "iters": 6,
+        "title": "Stage 3/4 - coloring"
+    },
+    {
+        "stage": "post-noise",
+        "iters": 3,
+        "title": "Stage 4/4 - loaning noise texture"
+    }
 ]
+var currIter = 0;
+var currStage = 0;
 
 function setup() {
     frameRate(60);
 
-    windowEdgeSize = Math.min(windowWidth, windowHeight);
-    myCanvas = createCanvas(windowEdgeSize, windowEdgeSize);
-    buffer = createGraphics(bufferSize, bufferSize);
+    var newW, newH;
+    if (windowHeight / windowWidth >= ratio) {
+        newW = windowWidth;
+        newH = windowWidth * ratio;
+    } else {
+        newW = windowHeight / ratio;
+        newH = windowHeight;
+    }
+
+    myCanvas = createCanvas(newW, newH);
+    myCanvas.id('mycanvas');
+
+    buffer = createGraphics(xBufferSize, yBufferSize);
     buffer.pixelDensity(1);
+    buffer.width = newW;
+    buffer.height = newH;
 
     myCanvas.style('display', 'block');
-
-    buffer.width = windowEdgeSize;
-    buffer.height = windowEdgeSize;
 
     palette = palettes[paletteIndex];
 
     //noiseSeed(1);
-    noiseSeed(fxRandRanged(0, 200));
+    noiseSeed(fxRandRanged(0, 2000));
 
-    loadingBuffer = createGraphics(160, 30);
-    loadingBuffer.background(0);
-    loadingBuffer.textSize(24);
+    loadingBuffer = createGraphics(370, 30);
+    loadingBuffer.textSize(20);
     loadingBuffer.stroke(255);
-    loadingBuffer.noFill();
+    loadingBuffer.fill(0);
 
-    myScene = new sceneClass();
+    //myScene = new sceneClass();
+    myScene = new FlowDelimiterScene();
     
     buffer.background(0);
     console.log('Made with 🤍 by @ivposure');
 };
 
 function windowResized() {
-    windowEdgeSize = Math.min(windowWidth, windowHeight);
-    resizeCanvas(windowEdgeSize, windowEdgeSize);
+    var newW, newH;
+    if (windowHeight / windowWidth >= ratio) {
+        newW = windowWidth;
+        newH = windowWidth * ratio;
+    } else {
+        newW = windowHeight / ratio;
+        newH = windowHeight;
+    }
 
-    buffer.width = windowEdgeSize;
-    buffer.height = windowEdgeSize;
+    resizeCanvas(newW, newH);
+    buffer.width = newW;
+    buffer.height = newH;
 
     image(buffer, 0, 0);
 };
@@ -79,7 +111,7 @@ function getPhi(x, y) {
 }
 
 function getDecart (ro, phi) {
-    return [ro * Math.cos(phi) + bufferSize / 2, ro * Math.sin(phi) + bufferSize / 2];
+    return [ro * Math.cos(phi) + xBufferSize / 2, ro * Math.sin(phi) + yBufferSize / 2];
 }
 
 function drawIsoline (x, y) {
@@ -100,13 +132,13 @@ function drawIsoline (x, y) {
     //buffer.strokeWeight(0.8);
     buffer.beginShape();
     
-    var ro = Math.sqrt((x - bufferSize / 2)** 2 + (y - bufferSize / 2) ** 2);
-    var randCoef = ro / (bufferSize / 2);
-    var alpha = map(randCoef, 0, 1, 255, 35);
+    var ro = Math.sqrt((x - xBufferSize / 2)** 2 + (y - yBufferSize / 2) ** 2);
+    var randCoef = ro / (yBufferSize / 2);
+    var alpha = map(randCoef, 0, 1, 255, 25);
 
-    //var sw = map(randCoef, 0, 1, 2, 0.5);
+    var sw = map(randCoef, 0, 1, 1, 0.5);
 
-    buffer.strokeWeight(0.8);
+    buffer.strokeWeight(sw);
 
     buffer.stroke(...pointStyle["color"], alpha);
 
@@ -122,23 +154,33 @@ function drawIsoline (x, y) {
             break;
         }
 
-        var phi = getPhi(x - bufferSize / 2, y - bufferSize / 2);
-        var ro = Math.sqrt((x - bufferSize / 2) ** 2 + (y - bufferSize / 2) ** 2);
+        if (area == 1) {
+            var phi = getPhi(x - xBufferSize / 2, y - yBufferSize / 2);
+            var ro = Math.sqrt((x - xBufferSize / 2) ** 2 + (y - yBufferSize / 2) ** 2);
+    
+            var randCoef = noise(ro, phi * 0.01);
+            randCoef = map(randCoef, 0, 1, -1, 1) / 8;
+    
+            var radiusCoef = ro / (xBufferSize / 2);
+    
+            var [rx, ry] = getDecart(ro, phi + randCoef * radiusCoef);
+    
+    
+            var randCoef = map(ro / (xBufferSize / 2), 0, 1, 0, 0.5);
+            var randX = fxRandRanged(-20, 20) * randCoef;
+            var randY = fxRandRanged(-20, 20) * randCoef;
+    
+            buffer.curveVertex(rx + randX, ry + randY);
+        } else if (area == 2 || area == 3) {
+            var randCoef = map(ro / (xBufferSize / 2), 0, 1, 0, 0.5);
+            var randX = fxRandRanged(-20, 20) * randCoef;
+            var randY = fxRandRanged(-20, 20) * randCoef;
 
-        var randCoef = noise(ro, phi * 0.01);
-        randCoef = map(randCoef, 0, 1, -1, 1) / 10;
-
-        var radiusCoef = ro / (bufferSize / 2);
-
-        var [rx, ry] = getDecart(ro, phi + randCoef * radiusCoef);
-
-
-        var randCoef = map(ro / (bufferSize / 2), 0, 1, 0, 0.5);
-        var randX = fxRandRanged(-20, 20) * randCoef;
-        var randY = fxRandRanged(-20, 20) * randCoef;
-
-        buffer.curveVertex(rx + randX, ry + randY);
-
+            buffer.curveVertex(x + randX, y + randY);
+        } else {
+            buffer.curveVertex(x, y);
+        }
+       
         
         if (style == "flow") {
             var noiseVal = pointStyle["noise"];
@@ -174,43 +216,101 @@ function drawIsoline (x, y) {
     buffer.endShape();
 }
 
+function drawNoise (x, y, alpha = 1, colorless = false) {
+    buffer.noFill();
+    buffer.strokeWeight(0.5);
+    buffer.beginShape();
+
+    var shift = fxRandRanged(0, 1000);
+    
+    if (currIter == 0 & !colorless) {
+        var colors = palette;
+        alpha /= 2;
+    } else {
+        var colors = [
+            [237, 228, 224, 100 * alpha],
+            [223, 211, 195, 50 * alpha],
+            [255, 255, 255, 80 * alpha],
+            [125, 125, 125, 5 * alpha],
+            [0, 0, 0, 255 * alpha]
+        ]
+    }
+    
+    var h = noise(x * 0.001 + currIter, y * 0.001 + currIter);
+    var index = Math.floor(map(h, 0, 1, 0, colors.length - 0.001));
+    buffer.stroke(...colors[index], 255 * alpha);
+
+    var xl = x, yl = y;
+    var rWidth = 30, r = 15;
+    buffer.beginShape();
+    for (i = 0; i < 40; i++) {
+        var noiseRand = noise(xl * 0.001, yl * 0.001);
+
+        xl = xl + fxRandRanged(-rWidth, rWidth) * noiseRand;
+        yl = yl + fxRandRanged(-rWidth, rWidth) * noiseRand;
+        
+        buffer.curveVertex(xl, yl);
+
+        var noiseVal = noise(xl * 0.00009 + shift, yl * 0.00009 + shift);
+        var ang = map(noiseVal, 0, 1, 0, Math.PI * 2) + fxRandRanged(0, Math.PI * 2);
+        xl = xl + r * Math.cos(ang);
+        yl = yl + r * Math.sin(ang);
+    }
+    buffer.endShape();
+}
+
 function draw() {      
-    if (nCurr >= nIters) {
-        if (!isCaptured) {
-            fxpreview();
-            isCaptured = true;
-        }
+    if (isCaptured) {
         return;
     }
 
-    var range = ranges[nCurr];
     for (let i = 0; i < 80; i++) {
-        if (nCurr % 2 == 0) {
-            drawIsoline(xi, yi);
-        } else {
-            drawIsoline(yi, xi);
-        }
-        
-        xi += fxRandRanged(...range);
-        if (xi > bufferSize) {
-            xi = fxRandRanged(-10, 0) ;
-            yi += fxRandRanged(...range);
-        }
-        if (yi >= bufferSize + 100) {
-            yi = fxRandRanged(-10, 0);
-            nCurr++;
-            if (nCurr >= nIters) {
-                break;
+        if (currStage >= stages.length) {
+            if (!isCaptured) {
+                loadingBuffer.clear();
+                image(buffer, 0, 0);
+                fxpreview();
+                isCaptured = true;
             }
+            return;
+        }
+
+        var stage = stages[currStage]["stage"];
+        var maxStageIters = stages[currStage]["iters"];
+        if (stage == "pre-noise") {
+            drawNoise(xi, yi, 0.12);
+        } else if (stage == "structure") {
+            //drawFlowBorder(xi, yi);
+        } else if (stage == "drawing") {
+            drawIsoline(xi, yi);
+        } else if (stage == "post-noise") {
+            drawNoise(xi, yi, 0.1, colorless=true);
+        }
+
+        xi += fxRandRanged(19, 21);
+        if (xi > xBufferSize) {
+            xi = 0;
+            yi += fxRandRanged(19, 21);
+        }
+        if (yi >= yBufferSize) {
+            yi = 0;
+            currIter++;
+        }
+
+        if (maxStageIters <= currIter) {
+            currIter = 0;
+            currStage++;
+
         }
     }
-
     image(buffer, 0, 0);
-    if (nCurr < nIters) {
-        var loaded = (Math.max(1, yi) / (bufferSize + 100)) * 1 / nIters + nCurr / nIters;
+
+    if (currStage < stages.length) {
+        var title = stages[currStage]["title"];
+        var loaded = (Math.max(1, yi) / yBufferSize) * 1 / maxStageIters + currIter / maxStageIters;
         loaded = Math.round(loaded * 100);
-        loadingBuffer.background(0);
-        loadingBuffer.text(`Loading ${loaded}%`, 5, 23);
+        loadingBuffer.clear();
+        loadingBuffer.text(`${title} ${loaded}%`, 5, 23);
         image(loadingBuffer, 0, 0);
     }
 };
