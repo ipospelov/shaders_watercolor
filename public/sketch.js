@@ -19,13 +19,8 @@ var myScene;
 var stages = [
     {
         "stage": "pre-noise",
-        "iters": 0,//3,
+        "iters": 2,
         "title": "Stage 1/4 - paper texturing"
-    },
-    {
-        "stage": "structure",
-        "iters": 0,
-        "title": "Stage 2/4 - loading frame"
     },
     {
         "stage": "drawing",
@@ -34,7 +29,7 @@ var stages = [
     },
     {
         "stage": "post-noise",
-        "iters": 3,
+        "iters": 2,
         "title": "Stage 4/4 - loaning noise texture"
     }
 ]
@@ -63,6 +58,7 @@ function setup() {
 
     myCanvas.style('display', 'block');
 
+    //palette = palettes[0];
     palette = palettes[paletteIndex];
 
     //noiseSeed(1);
@@ -74,10 +70,12 @@ function setup() {
     loadingBuffer.fill(0);
 
     //myScene = new sceneClass();
-    myScene = new FlowDelimiterScene();
+    myScene = new ExtraFlowDelimiterScene();
     
     buffer.background(0);
     console.log('Made with 🤍 by @ivposure');
+
+    drawFrameBorder();
 };
 
 function windowResized() {
@@ -129,19 +127,24 @@ function drawIsoline (x, y) {
     myScene.setDefaultArea(defaultArea);
 
     buffer.noFill();
-    //buffer.strokeWeight(0.8);
     buffer.beginShape();
     
     var ro = Math.sqrt((x - xBufferSize / 2)** 2 + (y - yBufferSize / 2) ** 2);
     var randCoef = ro / (yBufferSize / 2);
-    var alpha = map(randCoef, 0, 1, 255, 25);
 
-    var sw = map(randCoef, 0, 1, 1, 0.5);
+    if (ro > yBufferSize / 2) {
+        var alpha = 30;
+        var sw = 0.4;
+    } else {
+        var alpha = map(randCoef, 0, 1, 255, 25);
+        var sw = map(randCoef, 0, 1, 1, 0.2);
+    }
 
     buffer.strokeWeight(sw);
 
     buffer.stroke(...pointStyle["color"], alpha);
 
+    var noiseSize = 20;
     for (i = 0; i < 50; i++) {
         var minDiff = Infinity;
         
@@ -167,14 +170,14 @@ function drawIsoline (x, y) {
     
     
             var randCoef = map(ro / (xBufferSize / 2), 0, 1, 0, 0.5);
-            var randX = fxRandRanged(-20, 20) * randCoef;
-            var randY = fxRandRanged(-20, 20) * randCoef;
+            var randX = fxRandRanged(-noiseSize, noiseSize) * randCoef;
+            var randY = fxRandRanged(-noiseSize, noiseSize) * randCoef;
     
             buffer.curveVertex(rx + randX, ry + randY);
         } else if (area == 2 || area == 3) {
             var randCoef = map(ro / (xBufferSize / 2), 0, 1, 0, 0.5);
-            var randX = fxRandRanged(-20, 20) * randCoef;
-            var randY = fxRandRanged(-20, 20) * randCoef;
+            var randX = fxRandRanged(-noiseSize, noiseSize) * randCoef;
+            var randY = fxRandRanged(-noiseSize, noiseSize) * randCoef;
 
             buffer.curveVertex(x + randX, y + randY);
         } else {
@@ -259,6 +262,29 @@ function drawNoise (x, y, alpha = 1, colorless = false) {
     buffer.endShape();
 }
 
+function drawFrameBorder () {
+    buffer.noFill();
+    buffer.strokeWeight(5);
+    buffer.stroke(10);
+
+    for (var y of [frameWidth + 1, yBufferSize - frameWidth - 1]) {
+        buffer.beginShape();
+        for (var x = frameWidth + 1; x <= xBufferSize - frameWidth; x++) {
+            buffer.curveVertex(x + fxRandRanged(-1, 1), y + fxRandRanged(-1, 1));
+        }
+        buffer.endShape();
+    }
+
+    for (var x of [frameWidth + 1, xBufferSize - frameWidth - 1]) {
+        buffer.beginShape();
+        for (var y = frameWidth + 1; y <= yBufferSize - frameWidth; y++) {
+            buffer.curveVertex(x + fxRandRanged(-1, 1), y + fxRandRanged(-1, 1));
+        }
+        buffer.endShape();
+    }
+}
+
+
 function draw() {      
     if (isCaptured) {
         return;
@@ -278,13 +304,11 @@ function draw() {
         var stage = stages[currStage]["stage"];
         var maxStageIters = stages[currStage]["iters"];
         if (stage == "pre-noise") {
-            drawNoise(xi, yi, 0.12);
-        } else if (stage == "structure") {
-            //drawFlowBorder(xi, yi);
+            drawNoise(xi, yi, 0.08);
         } else if (stage == "drawing") {
             drawIsoline(xi, yi);
         } else if (stage == "post-noise") {
-            drawNoise(xi, yi, 0.1, colorless=true);
+            drawNoise(xi, yi, 0.03, colorless=true);
         }
 
         xi += fxRandRanged(19, 21);

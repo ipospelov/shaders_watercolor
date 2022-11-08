@@ -125,7 +125,7 @@ class Scene {
         var inFrame = this.isInFrame(x, y);
 
         if (!inFrame) {
-            var color = this.getColor(noiseVal, area, noiseGenerator);
+            var color = this.getColor(noiseVal * 1.5, area, noiseGenerator);
         } else {
             var color = [0, 0, 0];
         }
@@ -353,8 +353,8 @@ class ExtraSpiralScene extends Scene {
 
         this.xCenter = fxRandRanged(-500, 500);
         this.yCenter = fxRandRanged(-500, 500);
-        this.rStep = fxRandRanged(400, 600);
-        this.spiralWidth = fxRandRanged(200, 400);
+        this.rStep = fxRandRanged(200, 400);
+        this.spiralWidth = fxRandRanged(100, 120);
     }
 
     static toString () {
@@ -404,6 +404,7 @@ class FlowDelimiterScene extends Scene {
             [0.3, 0.5],
             [0.7, 0.9],
         ]
+        this.flowBorderWidth = 0.01;
     }
 
     static toString () {

@@ -1,17 +1,18 @@
 var brushStyles = [
-    [0.0009],
-    [0.0008],
-    [0.009],
-    [0.05],
-    [0.09],
     [0.0009, 0, 340],
     [0.0009, 0, 640],
     [0.009, 0, 30],
-    [0.0009, 0, 410],
     [0.00001, 0, 2410],
 ]
+var brushStyles2 = [
+    [0.009],
+    [0.09],
+    [0.05],
+    [0.0008],
+]
+
 var brushStyle1 = randomInt(0, brushStyles.length - 1);
-var brushStyle2 = randomInt(0, brushStyles.length - 1);
+var brushStyle2 = randomInt(0, brushStyles2.length - 1);
 
 var sceneRand = fxrand();
 var sceneClass = DoubleFlowDelimiterScene;
@@ -19,25 +20,26 @@ if (sceneRand <= 0.02) {
     sceneClass = SinScene;
 } else if (sceneRand <= 0.04) {
     sceneClass = HighFrequencySinScene;
-} else if (sceneRand <= 0.05) {
-    sceneClass = HorizontalScene;
-} else if (sceneRand <= 0.07) {
+// } else if (sceneRand <= 0.05) {
+//     sceneClass = HorizontalScene;
+} else if (sceneRand <= 0.15) {
     sceneClass = ManySpiralScene;
-} else if (sceneRand <= 0.17) {
+} else if (sceneRand <= 0.3) {
     sceneClass = SnailSpiralScene;
-} else if (sceneRand <= 0.2) {
+} else if (sceneRand <= 0.6) {
     sceneClass = ExtraSpiralScene;
-} else if (sceneRand <= 0.425) {
-    sceneClass = FlowDelimiterScene;
-} else if (sceneRand <= 0.65) {
-    sceneClass = FlowDelimiterScene2;
+// } else if (sceneRand <= 0.425) {
+//     sceneClass = FlowDelimiterScene;
+// } else if (sceneRand <= 0.65) {
+//     sceneClass = FlowDelimiterScene2;
 } else if (sceneRand <= 0.8) {
     sceneClass = DoubleFlowDelimiterScene;
-} else if (sceneRand <= 0.95) {
+} else  {
     sceneClass = ExtraFlowDelimiterScene;
-} else {
-    sceneClass = FlowDelimiterScene3;
 }
+//  else {
+//     sceneClass = FlowDelimiterScene3;
+// }
 
 var paletteIndex = randomInt(0, palettes.length - 1);
 
@@ -47,7 +49,7 @@ window.$fxhashFeatures = {
     "Scene generator": sceneClass.toString(),
 }
 console.log(brushStyle1, brushStyle2, sceneClass.toString());
-console.log(brushStyles[brushStyle1], brushStyles[brushStyle2])
+console.log(brushStyles[brushStyle1], brushStyles2[brushStyle2])
 
 
 var delimeterPercentiles = [
