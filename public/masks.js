@@ -31,7 +31,7 @@ class NoiseCache {
         }
             
         var values = []
-        var step = 5;
+        var step = 10;
         for (var x = 0; x < xBufferSize; x += step) {
             for (var y = 0; y < yBufferSize; y += step) {
                 values.push(this.get(x, y));

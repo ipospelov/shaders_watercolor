@@ -24,7 +24,7 @@ var stages = [
     },
     {
         "stage": "drawing",
-        "iters": 5,
+        "iters": 13,
         "title": "Stage 3/4 - coloring"
     },
     {
@@ -138,7 +138,7 @@ function drawIsoline (x, y) {
         var sw = 0.4;
     } else {
         var alpha = map(randCoef, 0, 1, 255, 25);
-        var sw = map(randCoef, 0, 1, 1, 0.2);
+        var sw = map(randCoef, 0, 1, 0.3, 0.1);
     }
 
     buffer.strokeWeight(sw);
