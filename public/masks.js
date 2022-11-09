@@ -31,7 +31,7 @@ class NoiseCache {
         }
             
         var values = []
-        var step = 10;
+        var step = 5;
         for (var x = 0; x < xBufferSize; x += step) {
             for (var y = 0; y < yBufferSize; y += step) {
                 values.push(this.get(x, y));
@@ -118,7 +118,7 @@ class Scene {
     }
 
     getPointStyle (x, y) {
-        var area = this.getAreaSuper(x, y);
+        var area = this.getArea(x, y);
         var noiseGenerator = this.noiseByArea[area];
         var noiseVal = noiseGenerator.get(x, y);
         
@@ -148,16 +148,6 @@ class Scene {
         return this.getAreaByDelimeter(x, y);
     }
 
-    getAreaSuper (x, y) {
-        var area = this.getArea(x, y);
-        // var inFrame = this.isInFrame(x, y);
-
-        // if (inFrame) {
-        //     return (area + 1) % 4;
-        // }
-        return area;
-    }
-
     getAreaByDelimeter (x, y) {
         var h1 = this.delimeterNoise.get(x, y);
         var del = 0;
@@ -173,7 +163,7 @@ class Scene {
     }
 
     getColor (height, area, noiseGenerator) {
-        var riverPercentiles = [0.15, 0.35];
+        var riverPercentiles = [0.1, 0.55];
         var isRiver = false;
         var p1, p2;
 
@@ -224,37 +214,6 @@ class SinScene extends Scene {
     }
 }
 
-class HighFrequencySinScene extends SinScene {
-    constructor () {
-        super();
-
-        this.delCoef = fxRandRanged(20, 50);
-    }
-
-    static toString () {
-        return "High frequency waves scene";
-    }
-}
-
-class HorizontalScene extends Scene {
-    constructor () {
-        super();
-
-        this.nLines = fxRandRanged(4, 20);
-        this.margin = Math.floor(yBufferSize / this.nLines);
-    }
-
-    static toString () {
-        return "Simple stripes scene";
-    }
-
-    getArea (x, y) {
-        var isFlow = this.getAreaByDelimeter(x, y);
-
-        return (Math.floor(Math.max(y, 0) / this.margin) + isFlow) % 4;
-    }
-}
-
 class ManySpiralScene extends Scene {
     constructor () {
         super();
@@ -300,99 +259,6 @@ class ManySpiralScene extends Scene {
     }
 }
 
-class SnailSpiralScene extends Scene {
-    constructor () {
-        super();
-
-        this.xCenter = fxRandRanged(-500, 500);
-        this.yCenter = fxRandRanged(-500, 500);
-        this.rStep = fxRandRanged(100, 400);
-    }
-
-    static toString () {
-        return "Spirals scene 2";
-    }
-
-    getArea (x, y) {
-        var isFlow = this.getAreaByDelimeter(x, y);
-
-        var xc = x - xBufferSize / 2 - this.xCenter;
-        var yc = y - yBufferSize / 2 - this.yCenter;
-        var r = Math.sqrt(xc ** 2 + yc ** 2);
-
-        var axc = Math.abs(xc);
-        var ayc = Math.abs(yc);
-        var ang;        
-        if (xc >=0 & yc >= 0) {
-            ang = Math.atan(ayc / axc);
-        } else if (yc >= 0 & xc < 0) {
-            ang = Math.atan(axc / ayc) + Math.PI / 2;
-        } else if (xc < 0 & yc < 0) {
-            ang = Math.atan(ayc / axc) + Math.PI;
-        } else {
-            ang = Math.atan(axc / ayc) + 3 * Math.PI / 2;
-        }
-        
-        var spiralWidth = 250;
-        var angCoef = (ang) / (2 * Math.PI);
-        for (var i = this.rStep; i < yBufferSize * 2; i += this.rStep) {
-            var r1 = i * angCoef + i;
-            var r2 = (i + spiralWidth) * angCoef + i;
-            if (r > r1 & r < r2) {
-                return isFlow + 2;
-            }
-        }
-
-        return isFlow;
-    }
-}
-
-class ExtraSpiralScene extends Scene {
-    constructor () {
-        super();
-
-        this.xCenter = fxRandRanged(-500, 500);
-        this.yCenter = fxRandRanged(-500, 500);
-        this.rStep = fxRandRanged(200, 400);
-        this.spiralWidth = fxRandRanged(100, 120);
-    }
-
-    static toString () {
-        return "Spirals scene 3";
-    }
-
-    getArea (x, y) {
-        var isFlow = this.getAreaByDelimeter(x, y);
-
-        var xc = x - xBufferSize / 2 - this.xCenter;
-        var yc = y - yBufferSize / 2 - this.yCenter;
-        var r = Math.sqrt(xc ** 2 + yc ** 2);
-
-        var axc = Math.abs(xc);
-        var ayc = Math.abs(yc);
-        var ang;        
-        if (xc >=0 & yc >= 0) {
-            ang = Math.atan(ayc / axc);
-        } else if (yc >= 0 & xc < 0) {
-            ang = Math.atan(axc / ayc) + Math.PI / 2;
-        } else if (xc < 0 & yc < 0) {
-            ang = Math.atan(ayc / axc) + Math.PI;
-        } else {
-            ang = Math.atan(axc / ayc) + 3 * Math.PI / 2;
-        }
-        
-        var angCoef = (ang) / (2 * Math.PI);
-        for (var i = this.rStep; i < yBufferSize * 2; i += this.rStep) {
-            var r1 = i * angCoef + i * Math.abs(Math.sin(i));
-            var r2 = (i + this.spiralWidth) * angCoef + i * Math.abs(Math.sin(i));
-            if (r > r1 & r < r2) {
-                return isFlow + 2;
-            }
-        }
-
-        return isFlow;
-    }
-}
 
 class FlowDelimiterScene extends Scene {
     constructor () {
@@ -428,78 +294,13 @@ class FlowDelimiterScene extends Scene {
     }
 }
 
-class FlowDelimiterScene2 extends FlowDelimiterScene {
-    constructor () {
-        super();
-
-        this.flowDel = new NoiseCache(0.00009);
-        this.percentiles = [
-            [0.1, 0.25],
-            [0.35, 0.5],
-            [0.6, 0.75],
-            [0.85, 1],
-        ]
-    }
-
-    static toString () {
-        return "Flow scene 2";
-    }
-}
-
-class DoubleFlowDelimiterScene extends FlowDelimiterScene {
-    constructor () {
-        super();
-
-        this.flowDel = new NoiseCache(0.00009);
-        this.flowDel2 = new NoiseCache(0.00009, 155);
-        this.percentiles = [
-            [0.1, 0.25],
-            [0.35, 0.5],
-            [0.6, 0.75],
-            [0.85, 1],
-        ]
-    }
-
-    static toString () {
-        return "Double flow scene";
-    }
-
-    getArea (x, y) {
-        var isFlow = this.getAreaByDelimeter(x, y);
-
-        var h = this.flowDel.get(x, y);
-        var h2 = this.flowDel2.get(x, y);
-
-        var acc = 0;
-
-        for (var perc of this.percentiles) {
-            var v1 = perc[0];
-            var v2 = perc[1];
-            if (h < this.flowDel.getPercentile(v2) & h >= this.flowDel.getPercentile(v1)) {
-                acc += 1;
-                break;
-            }
-        }
-        for (var perc of this.percentiles) {
-            var v1 = perc[0];
-            var v2 = perc[1];
-            if (h2 < this.flowDel2.getPercentile(v2) & h2 >= this.flowDel2.getPercentile(v1)) {
-                acc += 1;
-                break;
-            }
-        }
-
-        return isFlow + acc;
-    }
-}
-
-class ExtraFlowDelimiterScene extends FlowDelimiterScene {
+class ExtraFlowDelimiterScene extends Scene {
     constructor () {
         super();
 
         this.noises = [];
         for (var i = 0; i < 5; i++) {
-            this.noises.push(new NoiseCache(0.000009, fxRandRanged(0, 1000)));
+            this.noises.push(new NoiseCache(0.000001, fxRandRanged(0, 1000)));
         }
         this.percentiles = [
             [0.0, 0.4],
@@ -531,87 +332,49 @@ class ExtraFlowDelimiterScene extends FlowDelimiterScene {
     }
 }
 
-class ExtraNoiseCache extends NoiseCache {
-    get (x, y) {
-        return noise(
-            x * this.step + this.seedStep,
-            y * x * this.step + this.seedStep,
-        );
+class Line {
+    constructor (phi, x0, y0) {
+        this.k = Math.tan(phi);
+
+        this.x0 = x0;
+        this.y0 = y0;
+    }
+
+    isGreater (x, y) {
+        var xn = x - xBufferSize / 2;
+        var yn = y - yBufferSize / 2;
+
+        if (yn - this.y0 > this.k * (xn - this.x0)) {
+            return 0;
+        }
+        return 1;
     }
 }
 
-class FlowDelimiterScene3 extends FlowDelimiterScene {
+class SimpleLinesDelimeter extends Scene {
     constructor () {
         super();
 
-        this.flowDel = new ExtraNoiseCache(0.00000005);
-        this.percentiles = [
-            [0.1, 0.25],
-            [0.35, 0.5],
-            [0.6, 0.75],
-            [0.85, 1],
-        ]
-    }
-
-    static toString () {
-        return "Flow scene 4";
-    }
-}
-
-
-class RevertNoiseCache extends NoiseCache {
-    get (x, y) {
-        return noise(y * this.step + this.seedStep, x * this.step + this.seedStep) * this.coef;
-    }
-}
-class FlowDelimiterScene4 extends DoubleFlowDelimiterScene {
-    constructor () {
-        super();
-
-        this.flowDel = new NoiseCache(0.000009);
-        this.flowDel2 = new RevertNoiseCache(0.000009);
-        this.percentiles = [
-            [0.1, 0.2],
-            [0.3, 0.4],
-            [0.6, 0.7],
-            [0.9, 1],
-        ]
-        this.percentiles2 = [
-            [0.2, 0.3],
-            [0.5, 0.6],
-            [0.7, 0.9],
-        ]
+        this.lines = [];
+        
+        for (var i = 0; i < 2; i ++) {
+            var ang = fxRandRanged(-Math.PI / 2, Math.PI / 2);
+            var xShift = fxRandRanged(200, 500);
+            this.lines.push(new Line(- Math.PI / 4 + ang + fxrand() * Math.PI / 20, xShift, 0));
+            this.lines.push(new Line(- Math.PI / 4 + ang + fxrand() * Math.PI / 20, -xShift, 0));
+            this.lines.push(new Line(Math.PI / 4 + ang + fxrand() * Math.PI / 20, xShift, 0));
+            this.lines.push(new Line(Math.PI / 4 + ang + fxrand() * Math.PI / 20, -xShift, 0));
+        }
     }
 
     getArea (x, y) {
         var isFlow = this.getAreaByDelimeter(x, y);
 
-        var h = this.flowDel.get(x, y);
-        var h2 = this.flowDel2.get(x, y);
-
         var acc = 0;
-
-        for (var perc of this.percentiles) {
-            var v1 = perc[0];
-            var v2 = perc[1];
-            if (h < this.flowDel.getPercentile(v2) & h >= this.flowDel.getPercentile(v1)) {
-                acc += 1;
-                break;
-            }
-        }
-        for (var perc of this.percentiles2) {
-            var v1 = perc[0];
-            var v2 = perc[1];
-            if (h2 < this.flowDel2.getPercentile(v2) & h2 >= this.flowDel2.getPercentile(v1)) {
-                acc += 1;
-                break;
-            }
+        for (var line of this.lines) {
+            acc += line.isGreater(x, y);
         }
 
-        return isFlow + acc;
-    }
-
-    static toString () {
-        return "Flow scene 5";
+        return (isFlow + acc) % 4;
     }
 }

@@ -19,12 +19,12 @@ var myScene;
 var stages = [
     {
         "stage": "pre-noise",
-        "iters": 2,
+        "iters": 0,
         "title": "Stage 1/4 - paper texturing"
     },
     {
         "stage": "drawing",
-        "iters": 6,
+        "iters": 5,
         "title": "Stage 3/4 - coloring"
     },
     {
@@ -58,8 +58,8 @@ function setup() {
 
     myCanvas.style('display', 'block');
 
-    //palette = palettes[0];
-    palette = palettes[paletteIndex];
+    palette = palettes[0];
+    //palette = palettes[paletteIndex];
 
     //noiseSeed(1);
     noiseSeed(fxRandRanged(0, 2000));
@@ -73,6 +73,7 @@ function setup() {
     myScene = new ExtraFlowDelimiterScene();
     
     buffer.background(0);
+    
     console.log('Made with 🤍 by @ivposure');
 
     drawFrameBorder();
@@ -284,6 +285,92 @@ function drawFrameBorder () {
     }
 }
 
+function reinit () {
+    noiseSeed(fxRandRanged(0, 2000));
+    var brushStyles = [
+        [0.0009, 0, 340],
+        [0.0009, 0, 640],
+        [0.009, 0, 30],
+        [0.00001, 0, 2410],
+    ]
+    var brushStyles2 = [
+        [0.009],
+        [0.09],
+        [0.05],
+        [0.0008],
+    ]
+    
+    brushStyle1 = randomInt(0, brushStyles.length - 1);
+    brushStyle2 = randomInt(0, brushStyles2.length - 1);
+    
+    var sceneRand = fxrand();
+    sceneClass = DoubleFlowDelimiterScene;
+    if (sceneRand <= 0.02) {
+        sceneClass = SinScene;
+        sceneIndex = 0;
+    } else if (sceneRand <= 0.04) {
+        sceneClass = HighFrequencySinScene;
+        sceneIndex = 1;
+    // } else if (sceneRand <= 0.05) {
+    //     sceneClass = HorizontalScene;
+    } else if (sceneRand <= 0.3) {
+        sceneClass = ManySpiralScene;
+        sceneIndex = 2;
+    } else if (sceneRand <= 0.5) {
+        sceneClass = SnailSpiralScene;
+        sceneIndex = 3;
+    // } else if (sceneRand <= 0.6) {
+    //     sceneClass = ExtraSpiralScene;
+    //     sceneIndex = 4;
+    // } else if (sceneRand <= 0.425) {
+    //     sceneClass = FlowDelimiterScene;
+    // } else if (sceneRand <= 0.65) {
+    //     sceneClass = FlowDelimiterScene2;
+    } else if (sceneRand <= 0.75) {
+        sceneClass = DoubleFlowDelimiterScene;
+        sceneIndex = 5;
+    } else  {
+        sceneClass = ExtraFlowDelimiterScene;
+        sceneIndex = 6;
+    }
+    //  else {
+    //     sceneClass = FlowDelimiterScene3;
+    // }
+    
+    paletteIndex = randomInt(0, palettes.length - 1);
+    
+    window.$fxhashFeatures = {
+        "Brush style 1": brushStyle1 + 1,
+        "Brush style 2": brushStyle2 + 1,
+        "Scene generator": sceneClass.toString(),
+    }
+    console.log(brushStyle1, brushStyle2, sceneClass.toString());
+    console.log(brushStyles[brushStyle1], brushStyles2[brushStyle2])
+    
+    var delRand = fxrand();
+    var delIndex = 0;
+    if (delRand < 0.05) {
+        delIndex = 3;
+    } else if (delRand < 0.1) {
+        delIndex = 2;
+    } else if (delRand < 0.25){
+        delIndex = 1;
+    } else {
+        delIndex = 0;
+    } 
+
+    myScene = new sceneClass();
+    palette = palettes[paletteIndex];
+
+    currIter = 0;
+    currStage = 0;
+
+    buffer.background(0);
+    isCaptured = false;
+}
+
+var nStills = 30;
+var currStill = 0;
 
 function draw() {      
     if (isCaptured) {
@@ -297,6 +384,15 @@ function draw() {
                 image(buffer, 0, 0);
                 fxpreview();
                 isCaptured = true;
+
+                // if (currStill < nStills) {
+                //     currStill++;
+                // } else {
+                //     return;
+                // }
+
+                //save(buffer, `scene_${sceneIndex}_palette_${paletteIndex}.png`);
+                //reinit();
             }
             return;
         }
@@ -304,11 +400,11 @@ function draw() {
         var stage = stages[currStage]["stage"];
         var maxStageIters = stages[currStage]["iters"];
         if (stage == "pre-noise") {
-            drawNoise(xi, yi, 0.08);
+            drawNoise(xi, yi, 0.11);
         } else if (stage == "drawing") {
             drawIsoline(xi, yi);
         } else if (stage == "post-noise") {
-            drawNoise(xi, yi, 0.03, colorless=true);
+            drawNoise(xi, yi, 0.08, colorless=true);
         }
 
         xi += fxRandRanged(19, 21);
@@ -341,6 +437,6 @@ function draw() {
 
 function keyTyped() {
     if (key === 's') {
-        saveCanvas(myCanvas, 'flowers', 'png');
+        save(buffer, 'corriente.png');
     }
 };
