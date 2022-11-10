@@ -1,12 +1,12 @@
 class NoiseCache {
-    constructor (step = 0.005, seedStep = 0, coef = 1) {
+    constructor (step = 0.005, seedStep = 0, coef = 1, colorStep = 0.05) {
         this.step = step;
         this.percentilesCache = new Map();
         this.seedStep = seedStep;
         this.coef = coef;
 
         this.colorPercentiles = [];
-        var step = 0.1;
+        var step = colorStep;
         for (var i = 0; i <= 1; i += step) {
             this.colorPercentiles.push([
                 this.getPercentile(i),
@@ -53,7 +53,10 @@ class NoiseCache {
 class Scene {
     constructor () {
         this.flowNoise = new NoiseCache(...brushStyles[brushStyle1]);
-        this.flowNoise2 = new NoiseCache(...brushStyles[brushStyle2]);
+        this.flowNoise2 = new NoiseCache(...brushStyles2[brushStyle2]);
+
+        this.colorNoise = new NoiseCache(0.001, 1231);
+        this.colorNoise2 = new NoiseCache(0.001, 1231, 1, 0.2);
 
         // this.flowNoise = new NoiseCache(...[0.0009, 0, 640]);
         // this.flowNoise2 = new NoiseCache(...[0.009, 0, 30]);
@@ -122,13 +125,25 @@ class Scene {
         var noiseGenerator = this.noiseByArea[area];
         var noiseVal = noiseGenerator.get(x, y);
         
-        var inFrame = this.isInFrame(x, y);
+        //var inFrame = this.isInFrame(x, y);
 
-        if (!inFrame) {
-            var color = this.getColor(noiseVal * 1.5, area, noiseGenerator);
+        
+        //if (!inFrame) {
+
+        //var color = this.getColor(noiseVal, area, noiseGenerator);
+
+        if (area < 2) {
+            var colorHeight = this.colorNoise.get(x, y);
+            var color = this.getColor(colorHeight, area, this.colorNoise);
         } else {
-            var color = [0, 0, 0];
+            var colorHeight = this.colorNoise2.get(x, y);
+            var color = this.getColor(colorHeight, area, this.colorNoise2);
         }
+        
+
+        // } else {
+        //     var color = [0, 0, 0];
+        // }
         
  
         return {
@@ -163,15 +178,15 @@ class Scene {
     }
 
     getColor (height, area, noiseGenerator) {
-        var riverPercentiles = [0.1, 0.55];
+        var riverPercentiles = [0.15, 0.35];
         var isRiver = false;
         var p1, p2;
 
-        p1 = noiseGenerator.getPercentile(riverPercentiles[0]);
-        p2 = noiseGenerator.getPercentile(riverPercentiles[1]);
-        if (height >= p1 & height <= p2) {
-            isRiver = true;
-        }
+        // p1 = noiseGenerator.getPercentile(riverPercentiles[0]);
+        // p2 = noiseGenerator.getPercentile(riverPercentiles[1]);
+        // if (height >= p1 & height <= p2) {
+        //     isRiver = true;
+        // }
 
         var isReverted = this.colorByIsRiver[isRiver][area];
 
@@ -179,10 +194,16 @@ class Scene {
     }
 
     mixColors (isInverted, height, noiseGenerator) {
-        if (isInverted) {
-            return multipleMixColors(palette[0], palette[1], height, noiseGenerator);
+        if (palette.length == 1) {
+            localPalette = palette[0];
         } else {
-            return multipleMixColors(palette[2], palette[3], height, noiseGenerator);
+            var localPalette = palette[currIter % 2];
+        }
+        
+        if (isInverted) {
+            return multipleMixColors(localPalette[0], localPalette[1], height, noiseGenerator);
+        } else {
+            return multipleMixColors(localPalette[2], localPalette[3], height, noiseGenerator);
         }
     }
 }
@@ -306,10 +327,52 @@ class ExtraFlowDelimiterScene extends Scene {
             [0.0, 0.4],
             [0.7, 1],
         ]
+
+        this.percentilesMargin = 0.001;
     }
 
     static toString () {
         return "Flow scene 3";
+    }
+
+    getHeights (x, y) {
+        return this.noises.map((getter) => getter.get(x, y));
+    }
+
+    getFlowMarginNoise (x, y) {
+        var heights = this.getHeights(x, y);
+
+        var borderPercentiles = [];
+        for (var perc of this.percentiles) {
+            for (var pval of perc) {
+                // borderPercentiles.push(
+                //     [pval + this.percentilesMargin / 2, pval + this.percentilesMargin]
+                // );
+                // borderPercentiles.push(
+                //     [pval - this.percentilesMargin, pval - this.percentilesMargin / 2]
+                // );
+                borderPercentiles.push(
+                    [pval - this.percentilesMargin, pval + this.percentilesMargin]
+                );
+            }
+        }
+        
+        var acc = 0;
+        for (var percentile of borderPercentiles) {
+            var vMin = percentile[0];
+            var vMax = percentile[1];
+
+            for (var i = 0; i < heights.length; i++) {
+                var h = heights[i];
+                var getter = this.noises[i];
+                if (h < getter.getPercentile(vMax) & h >= getter.getPercentile(vMin)) {
+                    acc++;
+                    return getter;
+                }
+            }
+            acc = 0;
+        }
+        return;
     }
 
     getArea (x, y) {
