@@ -303,6 +303,41 @@ class ExtraFlowDelimiterScene extends Scene {
         return;
     }
 
+    getSpiralArea (x, y) {
+        var xCenter = 0;
+        var yCenter = 0;
+        var rStep = 100;
+
+        var xc = x - xBufferSize / 2 - xCenter;
+        var yc = y - yBufferSize / 2 - yCenter;
+        var r = Math.sqrt(xc ** 2 + yc ** 2);
+
+        var axc = Math.abs(xc);
+        var ayc = Math.abs(yc);
+        var ang;        
+        if (xc >= 0 & yc >= 0) {
+            ang = Math.atan(ayc / axc);
+        } else if (yc >= 0 & xc < 0) {
+            ang = Math.atan(axc / ayc) + Math.PI / 2;
+        } else if (xc < 0 & yc < 0) {
+            ang = Math.atan(ayc / axc) + Math.PI;
+        } else {
+            ang = Math.atan(axc / ayc) + 3 * Math.PI / 2;
+        }
+
+        var spiralWidth = 250;
+        var angCoef = (ang) / (2 * Math.PI);
+        for (var i = rStep; i < yBufferSize * 2; i += rStep) {
+            var r1 = i * angCoef + i;
+            var r2 = (i + spiralWidth) * angCoef + i;
+            if (r > r1 & r < r2) {
+                return 2;
+            }
+        }
+
+        return 0;
+    }
+
     getArea (x, y) {
         var isFlow = this.getAreaByDelimeter(x, y) + 3;
         var acc = 0;
@@ -318,6 +353,7 @@ class ExtraFlowDelimiterScene extends Scene {
                 }
             }
         }
+        acc += this.getSpiralArea(x, y);
 
         return (isFlow + acc) % 4;
     }

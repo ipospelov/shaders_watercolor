@@ -135,9 +135,28 @@ function drawIsoline (x, y) {
     buffer.noFill();
     buffer.beginShape();
     
+
+    // var yFrameSize = (yBufferSize / 2) - frameWidth;
+    // var yRo = Math.abs(y - yBufferSize / 2);
+
+    // var xFrameSize = (xBufferSize / 2) - frameWidth;
+    // var xRo = Math.abs(x - xBufferSize / 2);
+
+    // if (xRo > yRo) {
+    //     var ro = xRo;
+    //     var frameSize = xFrameSize;
+    // } else {
+    //     var ro = yRo;
+    //     var frameSize = yFrameSize;
+    // }
+    // var randCoef =  ro / frameSize;
+
+    // var alpha = map(randCoef, 0, 1, 220, 15);
+    // var strokeWeight = map(randCoef, 0, 1, 3, 0.2);
+
+
     var ro = Math.sqrt((x - xBufferSize / 2) ** 2 + (y - yBufferSize / 2) ** 2);
     var randCoef = ro / ((yBufferSize - frameWidth) / 2);
-
     if (ro > yBufferSize / 2) {
         var alpha = 35;
         var strokeWeight = 0.2;
@@ -148,7 +167,8 @@ function drawIsoline (x, y) {
 
     buffer.strokeWeight(strokeWeight);
 
-    buffer.stroke(...pointStyle["color"], alpha);
+    var color = pointStyle["color"];
+    buffer.stroke(...color, alpha);
 
     var noiseSize = 20;
     for (i = 0; i < 50; i++) {
@@ -172,8 +192,7 @@ function drawIsoline (x, y) {
     
             var radiusCoef = ro / (xBufferSize / 2);
     
-            var [rx, ry] = getDecart(ro, phi + randCoef * radiusCoef);
-    
+            var [rx, ry] = getDecart(ro, phi + randCoef * radiusCoef * 1.5);
     
             var randCoef = map(ro / (xBufferSize / 2), 0, 1, 0, 0.5);
             var randX = fxRandRanged(-noiseSize, noiseSize) * randCoef;
@@ -189,6 +208,7 @@ function drawIsoline (x, y) {
 
             buffer.curveVertex(x + randX, y + randY);
         } else {
+            buffer.stroke(...color, 230);
             buffer.strokeWeight(0.8);
             buffer.curveVertex(x, y);
         }
