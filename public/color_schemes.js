@@ -154,7 +154,7 @@ var palettes = [
             rgb(124, 62, 102),
             rgb(242, 235, 233),
             rgb(165, 190, 204),
-            rgb(36, 58, 115)
+            rgb(43, 79, 96)
         ],
     ],
 ]
@@ -186,14 +186,10 @@ function multipleMixColors(color1, color2, height, noiseGenerator) {
         p1 = range[0];
         p2 = range[1];
         if (height >= p1 & height <= p2) {
-            //console.log('BREAK', height, p1, p2)
             break;
         }
     }
 
-    if (height < p1 || height > p2) {
-        console.log('BUGGG', height, p1, p2)
-    }
    var intensity = map(height, p1, p2, 0, 1.5);
    intensity = constrain(intensity, 0, 1);
    return mixColors(color1, color2, intensity);

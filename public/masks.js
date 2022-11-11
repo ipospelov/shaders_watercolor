@@ -31,7 +31,7 @@ class NoiseCache {
         }
             
         var values = []
-        var step = 10;
+        var step = 20;
         for (var x = 0; x < xBufferSize; x += step) {
             for (var y = 0; y < yBufferSize; y += step) {
                 values.push(this.get(x, y));
@@ -209,78 +209,6 @@ class Scene {
 }
 
 
-class SinScene extends Scene {
-    constructor () {
-        super();
-
-        this.delCoef = fxRandRanged(80, 120);
-    }
-
-    static toString () {
-        return "Low frequency waves scene";
-    }
-
-    getArea (x, y) {
-        var ang = -Math.PI / 4;
-        var xn = x * Math.cos(ang) - y * Math.sin(ang);
-        var yn = x * Math.sin(ang) + y * Math.cos(ang);
-
-        var sinDel = sin(xn / this.delCoef) * xn < yn;
-        var isFlow = this.getAreaByDelimeter(x, y);
-
-        if (sinDel) {
-            return isFlow;
-        }
-        return isFlow + 2;
-    }
-}
-
-class ManySpiralScene extends Scene {
-    constructor () {
-        super();
-
-        this.xCenter = fxRandRanged(0, 500);
-        this.yCenter = fxRandRanged(-500, 500);
-        this.rStep = fxRandRanged(250, 450);
-    }
-
-    static toString () {
-        return "Spirals scene 1";
-    }
-
-    getArea (x, y) {
-        var isFlow = this.getAreaByDelimeter(x, y);
-
-        var xc = x - xBufferSize / 2 - this.xCenter;
-        var yc = y - yBufferSize / 2 - this.yCenter;
-        var r = Math.sqrt(xc ** 2 + yc ** 2);
-
-        var axc = Math.abs(xc);
-        var ayc = Math.abs(yc);
-        var ang;        
-        if (xc >=0 & yc >= 0) {
-            ang = Math.atan(ayc / axc);
-        } else if (yc >= 0 & xc < 0) {
-            ang = Math.atan(axc / ayc) + Math.PI / 2;
-        } else if (xc < 0 & yc < 0) {
-            ang = Math.atan(ayc / axc) + Math.PI;
-        } else {
-            ang = Math.atan(axc / ayc) + 3 * Math.PI / 2;
-        }
-        
-        var spiralWidth = 150;
-        var angCoef = (ang + 2) / (2 * Math.PI);
-        for (var i = this.rStep; i < yBufferSize * 2; i += this.rStep) {
-            if (r > i * angCoef & r < (i + spiralWidth) * angCoef) {
-                return isFlow + 2;
-            }
-        }
-
-        return isFlow;
-    }
-}
-
-
 class FlowDelimiterScene extends Scene {
     constructor () {
         super();
@@ -320,8 +248,8 @@ class ExtraFlowDelimiterScene extends Scene {
         super();
 
         this.noises = [];
-        for (var i = 0; i < 5; i++) {
-            this.noises.push(new NoiseCache(0.000001, fxRandRanged(0, 1000)));
+        for (var i = 0; i < 11; i++) {
+            this.noises.push(new NoiseCache(0.0000001, fxRandRanged(0, 1000)));
         }
         this.percentiles = [
             [0.0, 0.4],
@@ -376,7 +304,7 @@ class ExtraFlowDelimiterScene extends Scene {
     }
 
     getArea (x, y) {
-        var isFlow = this.getAreaByDelimeter(x, y);
+        var isFlow = this.getAreaByDelimeter(x, y) + 3;
         var acc = 0;
 
         for (var noiseMap of this.noises) {

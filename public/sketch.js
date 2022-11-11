@@ -19,7 +19,7 @@ var myScene;
 var stages = [
     {
         "stage": "pre-noise",
-        "iters": 1,
+        "iters": 0,
         "title": "Stage 1/4 - paper texturing"
     },
     {
@@ -29,12 +29,12 @@ var stages = [
     },
     {
         "stage": "drawing",
-        "iters": 10,
+        "iters": 5,
         "title": "Stage 3/4 - coloring"
     },
     {
         "stage": "post-noise",
-        "iters": 0,
+        "iters": 3,
         "title": "Stage 4/4 - loaning noise texture"
     }
 ]
@@ -63,7 +63,7 @@ function setup() {
 
     myCanvas.style('display', 'block');
 
-    palette = palettes[3];
+    palette = palettes[10];
     //palette = palettes[paletteIndex];
 
     //noiseSeed(1);
@@ -136,17 +136,17 @@ function drawIsoline (x, y) {
     buffer.beginShape();
     
     var ro = Math.sqrt((x - xBufferSize / 2) ** 2 + (y - yBufferSize / 2) ** 2);
-    var randCoef = ro / (yBufferSize / 2);
+    var randCoef = ro / ((yBufferSize - frameWidth) / 2);
 
     if (ro > yBufferSize / 2) {
-        var alpha = 30;
-        var sw = 0.2;
+        var alpha = 35;
+        var strokeWeight = 0.2;
     } else {
         var alpha = map(randCoef, 0, 1, 220, 25);
-        var sw = map(randCoef, 0, 1, 0.4, 0.2);
+        var strokeWeight = map(randCoef, 0, 1, 2, 0.2);
     }
 
-    buffer.strokeWeight(sw);
+    buffer.strokeWeight(strokeWeight);
 
     buffer.stroke(...pointStyle["color"], alpha);
 
@@ -189,7 +189,7 @@ function drawIsoline (x, y) {
 
             buffer.curveVertex(x + randX, y + randY);
         } else {
-            buffer.strokeWeight(1.5);
+            buffer.strokeWeight(0.8);
             buffer.curveVertex(x, y);
         }
        
@@ -246,7 +246,7 @@ function drawNoise (x, y, alpha = 1, colorless = false) {
         ]
     }
     
-    var h = noise(x * 0.001 + currIter, y * 0.001 + currIter);
+    var h = noise(x * 0.01 + currIter, y * 0.01 + currIter);
     var index = Math.floor(map(h, 0, 1, 0, colors.length - 0.001));
     buffer.stroke(...colors[index], 255 * alpha);
 
@@ -271,8 +271,8 @@ function drawNoise (x, y, alpha = 1, colorless = false) {
 
 function drawFrameBorder () {
     buffer.noFill();
-    buffer.strokeWeight(5);
-    buffer.stroke(10);
+    buffer.strokeWeight(0.4);
+    buffer.stroke(255);
 
     for (var y of [frameWidth + 1, yBufferSize - frameWidth - 1]) {
         buffer.beginShape();
@@ -314,9 +314,9 @@ function drawFlowBorder (x, y) {
         if (!myScene.getFlowMarginNoise(x, y)) {
             break;
         }
-        // if (myScene.isInFrame(x, y)) {
-        //     break;
-        // }
+        if (myScene.isInFrame(x, y)) {
+            break;
+        }
 
         buffer.curveVertex(x + fxRandRanged(-1, 1), y + fxRandRanged(-1, 1));
         for (var angle = 0; angle < 360; angle += angleStep) {
@@ -411,9 +411,9 @@ function draw() {
                     return;
                 }
 
-                save(buffer, `scene_${sceneIndex}_palette_${paletteIndex}.png`);
+                //save(buffer, `scene_${sceneIndex}_palette_${paletteIndex}.png`);
                 console.log(currStill, nStills);
-                reinit();
+                //reinit();
             }
             return;
         }
@@ -421,13 +421,13 @@ function draw() {
         var stage = stages[currStage]["stage"];
         var maxStageIters = stages[currStage]["iters"];
         if (stage == "pre-noise") {
-            drawNoise(xi, yi, 0.07);
+            drawNoise(xi, yi, 0.1);
         } else if (stage == "structure") {
             drawFlowBorder(xi, yi);
         } else if (stage == "drawing") {
             drawIsoline(xi, yi);
         } else if (stage == "post-noise") {
-            drawNoise(xi, yi, 0.07, colorless=true);
+            drawNoise(xi, yi, 0.1, colorless=true);
         }
 
         xi += fxRandRanged(19, 21);
