@@ -249,7 +249,7 @@ class ExtraFlowDelimiterScene extends Scene {
 
         this.noises = [];
         for (var i = 0; i < 11; i++) {
-            this.noises.push(new NoiseCache(0.0000001, fxRandRanged(0, 1000)));
+            this.noises.push(new NoiseCache(0.0000001, fxRandRanged(-1000, 1000)));
         }
         this.percentiles = [
             [0.0, 0.4],
@@ -303,39 +303,20 @@ class ExtraFlowDelimiterScene extends Scene {
         return;
     }
 
-    getSpiralArea (x, y) {
-        var xCenter = 0;
-        var yCenter = 0;
-        var rStep = 100;
+    getIndex (x, y) {
+        var acc = this.getAreaByDelimeter(x, y);
 
-        var xc = x - xBufferSize / 2 - xCenter;
-        var yc = y - yBufferSize / 2 - yCenter;
-        var r = Math.sqrt(xc ** 2 + yc ** 2);
-
-        var axc = Math.abs(xc);
-        var ayc = Math.abs(yc);
-        var ang;        
-        if (xc >= 0 & yc >= 0) {
-            ang = Math.atan(ayc / axc);
-        } else if (yc >= 0 & xc < 0) {
-            ang = Math.atan(axc / ayc) + Math.PI / 2;
-        } else if (xc < 0 & yc < 0) {
-            ang = Math.atan(ayc / axc) + Math.PI;
-        } else {
-            ang = Math.atan(axc / ayc) + 3 * Math.PI / 2;
-        }
-
-        var spiralWidth = 250;
-        var angCoef = (ang) / (2 * Math.PI);
-        for (var i = rStep; i < yBufferSize * 2; i += rStep) {
-            var r1 = i * angCoef + i;
-            var r2 = (i + spiralWidth) * angCoef + i;
-            if (r > r1 & r < r2) {
-                return 2;
+        for (var noiseMap of this.noises) {
+            var h = noiseMap.get(x, y);
+            for (var perc of this.percentiles) {
+                var v1 = perc[0];
+                var v2 = perc[1];
+                if (h < noiseMap.getPercentile(v2) & h >= noiseMap.getPercentile(v1)) {
+                    acc += 1;
+                }
             }
         }
-
-        return 0;
+        return acc;
     }
 
     getArea (x, y) {
@@ -353,7 +334,6 @@ class ExtraFlowDelimiterScene extends Scene {
                 }
             }
         }
-        acc += this.getSpiralArea(x, y);
 
         return (isFlow + acc) % 4;
     }

@@ -29,7 +29,7 @@ var stages = [
     },
     {
         "stage": "drawing",
-        "iters": 5,
+        "iters": 4,
         "title": "Stage 3/4 - coloring"
     },
     {
@@ -134,44 +134,41 @@ function drawIsoline (x, y) {
 
     buffer.noFill();
     buffer.beginShape();
-    
 
-    // var yFrameSize = (yBufferSize / 2) - frameWidth;
-    // var yRo = Math.abs(y - yBufferSize / 2);
+    var maxAlpha = 255;
+    var minAlpha = 25;
+    var maxWeight = 2;
+    var minWeight = 0.4;
 
-    // var xFrameSize = (xBufferSize / 2) - frameWidth;
-    // var xRo = Math.abs(x - xBufferSize / 2);
+    var yFrameSize = (yBufferSize / 2) - frameWidth;
+    var yRo = Math.abs(y - yBufferSize / 2);
 
-    // if (xRo > yRo) {
-    //     var ro = xRo;
-    //     var frameSize = xFrameSize;
-    // } else {
-    //     var ro = yRo;
-    //     var frameSize = yFrameSize;
-    // }
-    // var randCoef =  ro / frameSize;
+    var xFrameSize = (xBufferSize / 2) - frameWidth;
+    var xRo = Math.abs(x - xBufferSize / 2);
 
-    // var alpha = map(randCoef, 0, 1, 220, 15);
-    // var strokeWeight = map(randCoef, 0, 1, 3, 0.2);
-
-
-    var ro = Math.sqrt((x - xBufferSize / 2) ** 2 + (y - yBufferSize / 2) ** 2);
-    var randCoef = ro / ((yBufferSize - frameWidth) / 2);
-    if (ro > yBufferSize / 2) {
-        var alpha = 35;
-        var strokeWeight = 0.2;
+    if (xRo > yRo) {
+        var ro = xRo;
+        var frameSize = xFrameSize;
     } else {
-        var alpha = map(randCoef, 0, 1, 220, 25);
-        var strokeWeight = map(randCoef, 0, 1, 2, 0.2);
+        var ro = yRo;
+        var frameSize = yFrameSize;
     }
+    var randCoef =  ro / frameSize;
+
+    var alpha = map(randCoef, 0, 1, maxAlpha, minAlpha);
+    var strokeWeight = map(randCoef, 0, 1, maxWeight, minWeight);
 
     buffer.strokeWeight(strokeWeight);
 
     var color = pointStyle["color"];
     buffer.stroke(...color, alpha);
-
     var noiseSize = 20;
-    for (i = 0; i < 50; i++) {
+    var iters = area == 1 ? 150 : 50;
+
+    var index = myScene.getIndex(x, y);
+    var globalPhi = map(noise(index), 0, 1, -Math.PI / 4, Math.PI / 4);
+
+    for (i = 0; i < iters; i++) {
         var minDiff = Infinity;
         
         pointStyle = myScene.getPointStyle(x, y);
@@ -198,20 +195,30 @@ function drawIsoline (x, y) {
             var randX = fxRandRanged(-noiseSize, noiseSize) * randCoef;
             var randY = fxRandRanged(-noiseSize, noiseSize) * randCoef;
     
-            buffer.curveVertex(rx + randX, ry + randY);
+            var xDraw = rx + randX;
+            var yDraw = ry + randY;
         } else if (area == 2 || area == 3) {
             var ro = Math.sqrt((x - xBufferSize / 2) ** 2 + (y - yBufferSize / 2) ** 2);
 
-            var randCoef = map(ro / (xBufferSize / 2), 0, 1, 0, 0.5);
+            var randCoef = map(ro / (xBufferSize / 2), 0, 1, 0.1, 0.5);
             var randX = fxRandRanged(-noiseSize, noiseSize) * randCoef;
             var randY = fxRandRanged(-noiseSize, noiseSize) * randCoef;
 
-            buffer.curveVertex(x + randX, y + randY);
+            var xDraw = x + randX;
+            var yDraw = y + randY;
         } else {
             buffer.stroke(...color, 230);
             buffer.strokeWeight(0.8);
-            buffer.curveVertex(x, y);
+
+            var xDraw = x;
+            var yDraw = y;
         }
+        var phi = getPhi(xDraw - xBufferSize / 2, yDraw - yBufferSize / 2);
+        var ro = Math.sqrt((xDraw - xBufferSize / 2) ** 2 + (yDraw - yBufferSize / 2) ** 2);
+
+        var [xDraw, yDraw] = getDecart(ro, phi + globalPhi);
+        
+        buffer.curveVertex(xDraw, yDraw);
        
         
         if (style == "flow") {
@@ -447,7 +454,7 @@ function draw() {
         } else if (stage == "drawing") {
             drawIsoline(xi, yi);
         } else if (stage == "post-noise") {
-            drawNoise(xi, yi, 0.1, colorless=true);
+            drawNoise(xi, yi, 0.2, colorless=true);
         }
 
         xi += fxRandRanged(19, 21);
