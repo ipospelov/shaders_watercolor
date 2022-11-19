@@ -18,6 +18,11 @@ var myScene;
 
 var stages = [
     {
+        "stage": "filling",
+        "iters": 1,
+        "title": "Stage 1/4 - paper texturing"
+    },
+    {
         "stage": "pre-noise",
         "iters": 0,
         "title": "Stage 1/4 - paper texturing"
@@ -29,12 +34,12 @@ var stages = [
     },
     {
         "stage": "drawing",
-        "iters": 4,
+        "iters": 0,
         "title": "Stage 3/4 - coloring"
     },
     {
         "stage": "post-noise",
-        "iters": 3,
+        "iters": 0,
         "title": "Stage 4/4 - loaning noise texture"
     }
 ]
@@ -119,6 +124,8 @@ function getDecart (ro, phi) {
 }
 
 function drawIsoline (x, y) {
+    palette = palettes[10];
+
     if (myScene.isInFrame(x, y)) {
         return;
     }
@@ -165,9 +172,6 @@ function drawIsoline (x, y) {
     var noiseSize = 20;
     var iters = area == 1 ? 150 : 50;
 
-    var index = myScene.getIndex(x, y);
-    var globalPhi = map(noise(index), 0, 1, -Math.PI / 4, Math.PI / 4);
-
     for (i = 0; i < iters; i++) {
         var minDiff = Infinity;
         
@@ -213,11 +217,6 @@ function drawIsoline (x, y) {
             var xDraw = x;
             var yDraw = y;
         }
-        var phi = getPhi(xDraw - xBufferSize / 2, yDraw - yBufferSize / 2);
-        var ro = Math.sqrt((xDraw - xBufferSize / 2) ** 2 + (yDraw - yBufferSize / 2) ** 2);
-
-        var [xDraw, yDraw] = getDecart(ro, phi + globalPhi);
-        
         buffer.curveVertex(xDraw, yDraw);
        
         
@@ -373,6 +372,41 @@ function drawFlowBorder (x, y) {
     buffer.endShape();
 }
 
+function fillAreas (x, y) {
+    palette = palettes[10];
+
+    if (myScene.isInFrame(x, y)) {
+        return;
+    }
+
+    buffer.noFill();
+    buffer.strokeWeight(2);
+
+    var shift = fxRandRanged(0, 1000);
+
+    var xl = x, yl = y;
+    var rWidth = 100, r = 1;
+    buffer.beginShape(POINTS);
+    for (i = 0; i < 140; i++) {
+        var noiseRand = noise(xl * 0.001, yl * 0.001);
+
+        xl = xl + fxRandRanged(-rWidth, rWidth) * noiseRand;
+        yl = yl + fxRandRanged(-rWidth, rWidth) * noiseRand;
+
+        pointStyle = myScene.getPointStyle(xl, yl);
+
+        buffer.stroke(...pointStyle["color"]);
+        
+        buffer.curveVertex(xl, yl);
+
+        var noiseVal = noise(xl * 0.00009 + shift, yl * 0.00009 + shift);
+        var ang = map(noiseVal, 0, 1, 0, Math.PI * 2) + fxRandRanged(0, Math.PI * 2);
+        xl = xl + r * Math.cos(ang);
+        yl = yl + r * Math.sin(ang);
+    }
+    buffer.endShape();
+}
+
 function reinit () {
     noiseSeed(fxRandRanged(0, 2000));
     var brushStyles = [
@@ -455,6 +489,8 @@ function draw() {
             drawIsoline(xi, yi);
         } else if (stage == "post-noise") {
             drawNoise(xi, yi, 0.2, colorless=true);
+        } else if (stage == "filling") {
+            fillAreas(xi, yi);
         }
 
         xi += fxRandRanged(19, 21);
