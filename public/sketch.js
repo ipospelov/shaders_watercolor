@@ -380,22 +380,25 @@ function fillAreas (x, y) {
     }
 
     buffer.noFill();
-    buffer.strokeWeight(2);
+    buffer.strokeWeight(1);
 
     var shift = fxRandRanged(0, 1000);
 
     var xl = x, yl = y;
     var rWidth = 100, r = 1;
-    buffer.beginShape(POINTS);
+    buffer.beginShape();
+    pointStyle = myScene.getPointStyle(xl, yl);
+
+    buffer.stroke(...pointStyle["color"]);
     for (i = 0; i < 140; i++) {
         var noiseRand = noise(xl * 0.001, yl * 0.001);
 
         xl = xl + fxRandRanged(-rWidth, rWidth) * noiseRand;
         yl = yl + fxRandRanged(-rWidth, rWidth) * noiseRand;
 
-        pointStyle = myScene.getPointStyle(xl, yl);
+        // pointStyle = myScene.getPointStyle(xl, yl);
 
-        buffer.stroke(...pointStyle["color"]);
+        // buffer.stroke(...pointStyle["color"]);
         
         buffer.curveVertex(xl, yl);
 
