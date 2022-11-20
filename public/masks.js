@@ -248,7 +248,7 @@ class ExtraFlowDelimiterScene extends Scene {
         super();
 
         this.noises = [];
-        for (var i = 0; i < 11; i++) {
+        for (var i = 0; i < 5; i++) {
             this.noises.push(new NoiseCache(0.0000001, fxRandRanged(-1000, 1000)));
         }
         this.percentiles = [
@@ -319,8 +319,20 @@ class ExtraFlowDelimiterScene extends Scene {
         return acc;
     }
 
+    getFillColor (x, y) {
+        var index = this.getIndex(x, y);
+        var paletteLength = palette[0].length;
+        //var colorIndex = index % paletteLength;
+        var intensity = index / paletteLength - Math.floor(index / paletteLength);
+
+        var area = this.getArea(x, y);
+        var noiseGenerator = this.noiseByArea[area];
+
+        return this.getColor(intensity, area, noiseGenerator);
+    }
+
     getArea (x, y) {
-        var isFlow = this.getAreaByDelimeter(x, y) + 3;
+        var isFlow = this.getAreaByDelimeter(x, y) + 0; // + 3
         var acc = 0;
 
         for (var noiseMap of this.noises) {

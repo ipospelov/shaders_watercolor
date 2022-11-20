@@ -31,6 +31,13 @@ console.log(brushStyles[brushStyle1], brushStyles2[brushStyle2])
 
 
 var delimeterPercentiles = [
+    // [
+    //     [0.1, 0.15],
+    //     [0.3, 0.35],
+    //     [0.4, 0.45],
+    //     [0.5, 0.55],
+    //     [0.8, 0.85],
+    // ],
     [
         [0.1, 0.15],
         [0.5, 0.55],
