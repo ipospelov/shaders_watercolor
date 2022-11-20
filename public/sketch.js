@@ -18,6 +18,11 @@ var myScene;
 
 var stages = [
     {
+        "stage": "filling",
+        "iters": 1,
+        "title": "Stage 1/4 - paper texturing"
+    },
+    {
         "stage": "pre-noise",
         "iters": 0,
         "title": "Stage 1/4 - paper texturing"
@@ -29,7 +34,7 @@ var stages = [
     },
     {
         "stage": "drawing",
-        "iters": 4,
+        "iters": 0,
         "title": "Stage 3/4 - coloring"
     },
     {
@@ -365,6 +370,41 @@ function drawFlowBorder (x, y) {
     buffer.endShape();
 }
 
+function fillAreas (x, y) {
+    palette = palettes[10];
+
+    // if (myScene.isInFrame(x, y)) {
+    //     return;
+    // }
+
+    buffer.noFill();
+    buffer.strokeWeight(5);
+
+    var shift = fxRandRanged(0, 1000);
+
+    var xl = x, yl = y;
+    var rWidth = 100, r = 1;
+    buffer.beginShape(POINTS);
+    for (i = 0; i < 50; i++) {
+        var noiseRand = noise(xl * 0.001, yl * 0.001);
+
+        xl = xl + fxRandRanged(-rWidth, rWidth) * noiseRand;
+        yl = yl + fxRandRanged(-rWidth, rWidth) * noiseRand;
+
+        var color = myScene.getFillColor(xl, yl);
+
+        buffer.stroke(...color);
+
+        buffer.curveVertex(xl, yl);
+
+        var noiseVal = noise(xl * 0.00009 + shift, yl * 0.00009 + shift);
+        var ang = map(noiseVal, 0, 1, 0, Math.PI * 2) + fxRandRanged(0, Math.PI * 2);
+        xl = xl + r * Math.cos(ang);
+        yl = yl + r * Math.sin(ang);
+    }
+    buffer.endShape();
+}
+
 function reinit () {
     noiseSeed(fxRandRanged(0, 2000));
     var brushStyles = [
@@ -447,6 +487,8 @@ function draw() {
             drawIsoline(xi, yi);
         } else if (stage == "post-noise") {
             drawNoise(xi, yi, 0.2, colorless=true);
+        } else if (stage == "filling") {
+            fillAreas(xi, yi);
         }
 
         xi += fxRandRanged(19, 21);

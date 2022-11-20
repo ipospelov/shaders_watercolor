@@ -208,52 +208,17 @@ class Scene {
     }
 }
 
-
-class FlowDelimiterScene extends Scene {
-    constructor () {
-        super();
-
-        this.flowDel = new NoiseCache(0.00005);
-        this.percentiles = [
-            [0.1, 0.2],
-            [0.3, 0.5],
-            [0.7, 0.9],
-        ]
-        this.flowBorderWidth = 0.01;
-    }
-
-    static toString () {
-        return "Flow scene 1";
-    }
-
-    getArea (x, y) {
-        var isFlow = this.getAreaByDelimeter(x, y);
-
-        var h = this.flowDel.get(x, y);
-
-        for (var perc of this.percentiles) {
-            var v1 = perc[0];
-            var v2 = perc[1];
-            if (h < this.flowDel.getPercentile(v2) & h >= this.flowDel.getPercentile(v1)) {
-                return isFlow;
-            }
-        }
-
-        return isFlow + 2;
-    }
-}
-
 class ExtraFlowDelimiterScene extends Scene {
     constructor () {
         super();
 
         this.noises = [];
-        for (var i = 0; i < 5; i++) {
+        for (var i = 0; i < 11; i++) {
             this.noises.push(new NoiseCache(0.0000001, fxRandRanged(-1000, 1000)));
         }
         this.percentiles = [
-            [0.0, 0.4],
-            [0.7, 1],
+            [0.0, 0.2],
+            [0.5, 1],
         ]
 
         this.percentilesMargin = 0.001;
