@@ -61,7 +61,7 @@ class Scene {
         // this.flowNoise = new NoiseCache(...[0.0009, 0, 640]);
         // this.flowNoise2 = new NoiseCache(...[0.009, 0, 30]);
         
-        var circleStep = 0.005;
+        var circleStep = 0.008;
         this.circleNoise = new NoiseCache(circleStep);
         this.delimeterNoise = new NoiseCache(circleStep);
 
@@ -217,8 +217,8 @@ class ExtraFlowDelimiterScene extends Scene {
             this.noises.push(new NoiseCache(0.0000001, fxRandRanged(-1000, 1000)));
         }
         this.percentiles = [
-            [0.0, 0.2],
-            [0.5, 1],
+            [0.0, 0.3],
+            [0.6, 1],
         ]
 
         this.percentilesMargin = 0.001;
@@ -238,12 +238,6 @@ class ExtraFlowDelimiterScene extends Scene {
         var borderPercentiles = [];
         for (var perc of this.percentiles) {
             for (var pval of perc) {
-                // borderPercentiles.push(
-                //     [pval + this.percentilesMargin / 2, pval + this.percentilesMargin]
-                // );
-                // borderPercentiles.push(
-                //     [pval - this.percentilesMargin, pval - this.percentilesMargin / 2]
-                // );
                 borderPercentiles.push(
                     [pval - this.percentilesMargin, pval + this.percentilesMargin]
                 );
@@ -285,15 +279,15 @@ class ExtraFlowDelimiterScene extends Scene {
     }
 
     getFillColor (x, y) {
-        var index = this.getIndex(x, y);
-        var paletteLength = palette[0].length;
+        //var index = 1;//this.getIndex(x, y);
+        //var paletteLength = palette[0].length;
         //var colorIndex = index % paletteLength;
-        var intensity = index / paletteLength - Math.floor(index / paletteLength);
+        //var intensity = index / paletteLength - Math.floor(index / paletteLength);
 
         var area = this.getArea(x, y);
         var noiseGenerator = this.noiseByArea[area];
 
-        return this.getColor(intensity, area, noiseGenerator);
+        return this.getColor(1, area, noiseGenerator);
     }
 
     getArea (x, y) {
@@ -316,49 +310,3 @@ class ExtraFlowDelimiterScene extends Scene {
     }
 }
 
-class Line {
-    constructor (phi, x0, y0) {
-        this.k = Math.tan(phi);
-
-        this.x0 = x0;
-        this.y0 = y0;
-    }
-
-    isGreater (x, y) {
-        var xn = x - xBufferSize / 2;
-        var yn = y - yBufferSize / 2;
-
-        if (yn - this.y0 > this.k * (xn - this.x0)) {
-            return 0;
-        }
-        return 1;
-    }
-}
-
-class SimpleLinesDelimeter extends Scene {
-    constructor () {
-        super();
-
-        this.lines = [];
-        
-        for (var i = 0; i < 2; i ++) {
-            var ang = fxRandRanged(-Math.PI / 2, Math.PI / 2);
-            var xShift = fxRandRanged(200, 500);
-            this.lines.push(new Line(- Math.PI / 4 + ang + fxrand() * Math.PI / 20, xShift, 0));
-            this.lines.push(new Line(- Math.PI / 4 + ang + fxrand() * Math.PI / 20, -xShift, 0));
-            this.lines.push(new Line(Math.PI / 4 + ang + fxrand() * Math.PI / 20, xShift, 0));
-            this.lines.push(new Line(Math.PI / 4 + ang + fxrand() * Math.PI / 20, -xShift, 0));
-        }
-    }
-
-    getArea (x, y) {
-        var isFlow = this.getAreaByDelimeter(x, y);
-
-        var acc = 0;
-        for (var line of this.lines) {
-            acc += line.isGreater(x, y);
-        }
-
-        return (isFlow + acc) % 4;
-    }
-}

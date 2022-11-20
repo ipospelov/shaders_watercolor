@@ -19,7 +19,7 @@ var myScene;
 var stages = [
     {
         "stage": "filling",
-        "iters": 1,
+        "iters": 0,
         "title": "Stage 1/4 - paper texturing"
     },
     {
@@ -29,7 +29,7 @@ var stages = [
     },
     {
         "stage": "structure",
-        "iters": 1,
+        "iters": 0,
         "title": "Stage 2/4 - structure"
     },
     {
@@ -39,7 +39,7 @@ var stages = [
     },
     {
         "stage": "post-noise",
-        "iters": 3,
+        "iters": 1,
         "title": "Stage 4/4 - loaning noise texture"
     }
 ]
@@ -254,28 +254,22 @@ function drawIsoline (x, y) {
 
 function drawNoise (x, y, alpha = 1, colorless = false) {
     buffer.noFill();
-    buffer.strokeWeight(0.1);
+    buffer.strokeWeight(1.1);
     buffer.beginShape();
-
-    var shift = fxRandRanged(0, 1000);
     
-    if (!colorless) {
-        var colors = palette[0];
-        alpha /= 2;
-    } else {
-        var colors = [
-            [255, 255, 255, 80 * alpha],
-            [125, 125, 125, 5 * alpha],
-            [0, 0, 0, 255 * alpha]
-        ]
-    }
+    var colors = [
+        [237, 228, 224, 100 * alpha],
+        [223, 211, 195, 50 * alpha],
+        [255, 255, 255, 80 * alpha],
+        [125, 125, 125, 5 * alpha]
+    ]
     
     var h = noise(x * 0.01 + currIter, y * 0.01 + currIter);
     var index = Math.floor(map(h, 0, 1, 0, colors.length - 0.001));
     buffer.stroke(...colors[index], 255 * alpha);
 
     var xl = x, yl = y;
-    var rWidth = 100, r = 1;
+    var rWidth = 100;
     buffer.beginShape();
     for (i = 0; i < 140; i++) {
         var noiseRand = noise(xl * 0.001, yl * 0.001);
@@ -284,11 +278,6 @@ function drawNoise (x, y, alpha = 1, colorless = false) {
         yl = yl + fxRandRanged(-rWidth, rWidth) * noiseRand;
         
         buffer.curveVertex(xl, yl);
-
-        var noiseVal = noise(xl * 0.00009 + shift, yl * 0.00009 + shift);
-        var ang = map(noiseVal, 0, 1, 0, Math.PI * 2) + fxRandRanged(0, Math.PI * 2);
-        xl = xl + r * Math.cos(ang);
-        yl = yl + r * Math.sin(ang);
     }
     buffer.endShape();
 }
@@ -371,22 +360,20 @@ function drawFlowBorder (x, y) {
 }
 
 function fillAreas (x, y) {
-    palette = palettes[10];
+    palette = palettes[6];
 
     // if (myScene.isInFrame(x, y)) {
     //     return;
     // }
 
     buffer.noFill();
-    buffer.strokeWeight(5);
-
-    var shift = fxRandRanged(0, 1000);
+    buffer.strokeWeight(4);
 
     var xl = x, yl = y;
-    var rWidth = 100, r = 1;
+    var rWidth = 100;
     buffer.beginShape(POINTS);
     for (i = 0; i < 50; i++) {
-        var noiseRand = noise(xl * 0.001, yl * 0.001);
+        var noiseRand = noise(xl * 0.0001, yl * 0.0001);
 
         xl = xl + fxRandRanged(-rWidth, rWidth) * noiseRand;
         yl = yl + fxRandRanged(-rWidth, rWidth) * noiseRand;
@@ -396,11 +383,6 @@ function fillAreas (x, y) {
         buffer.stroke(...color);
 
         buffer.curveVertex(xl, yl);
-
-        var noiseVal = noise(xl * 0.00009 + shift, yl * 0.00009 + shift);
-        var ang = map(noiseVal, 0, 1, 0, Math.PI * 2) + fxRandRanged(0, Math.PI * 2);
-        xl = xl + r * Math.cos(ang);
-        yl = yl + r * Math.sin(ang);
     }
     buffer.endShape();
 }
@@ -480,13 +462,13 @@ function draw() {
         var stage = stages[currStage]["stage"];
         var maxStageIters = stages[currStage]["iters"];
         if (stage == "pre-noise") {
-            drawNoise(xi, yi, 0.1);
+            drawNoise(xi, yi, 0.4);
         } else if (stage == "structure") {
             drawFlowBorder(xi, yi);
         } else if (stage == "drawing") {
             drawIsoline(xi, yi);
         } else if (stage == "post-noise") {
-            drawNoise(xi, yi, 0.2, colorless=true);
+            drawNoise(xi, yi, 0.1, colorless=true);
         } else if (stage == "filling") {
             fillAreas(xi, yi);
         }
