@@ -213,12 +213,16 @@ class ExtraFlowDelimiterScene extends Scene {
         super();
 
         this.noises = [];
-        for (var i = 0; i < 11; i++) {
-            this.noises.push(new NoiseCache(0.0000001, fxRandRanged(-1000, 1000)));
+        for (var i = 0; i < 20; i++) {
+            this.noises.push(new NoiseCache(0.001, fxRandRanged(-10000, 10000)));
         }
         this.percentiles = [
-            [0.0, 0.3],
-            [0.6, 1],
+            // [0.0, 0.3],
+            // [0.6, 1],
+//            [0.1, 0.2],
+            [0.45, 0.55],
+            [0.56, 0.57],
+            
         ]
 
         this.percentilesMargin = 0.001;
@@ -310,3 +314,65 @@ class ExtraFlowDelimiterScene extends Scene {
     }
 }
 
+class Line {
+    constructor (phi, x0, y0) {
+        this.k = Math.tan(phi);
+        this.x0 = x0;
+        this.y0 = y0;
+    }
+
+    isGreater (x, y) {
+        var xn = x - xBufferSize / 2;
+        var yn = y - yBufferSize / 2;
+        if (yn - this.y0 > this.k * (xn - this.x0)) {
+            return 0;
+        }
+        return 1;
+    }
+}
+class SimpleLinesDelimeter extends ExtraFlowDelimiterScene {
+    constructor () {
+        super();
+        this.lines = [];
+
+
+        for (var i = 0; i < 20; i++) {
+            var orbitR = 100;
+            var orbitAng = fxRandRanged(0, 2 * Math.PI);
+            var [xr, yr] = getDecartShifted(orbitR, orbitAng, 0, 0);
+
+            var xr = 0, yr = 0;
+
+            var r = 100;
+
+            if (fxrand() < 0.5) {
+                var ang = fxRandRanged(Math.PI / 3, Math.PI - Math.PI / 3);
+            } else {
+                var ang = fxRandRanged(Math.PI + Math.PI / 3, 2 * Math.PI - Math.PI / 3);
+            }
+            // var ang = fxRandRanged(0, 2 * Math.PI);
+            var [x, y] = getDecartShifted(r, ang, xr, yr);
+            this.lines.push(new Line(ang + Math.PI / 2, x, y));
+    
+            ang -= Math.PI;
+            var [x, y] = getDecartShifted(r, ang, xr, yr);
+            this.lines.push(new Line(ang + Math.PI / 2, x, y));
+
+            var [x, y] = getDecartShifted(r + 100, ang, xr, yr);
+            this.lines.push(new Line(ang + Math.PI / 2, x, y));
+
+            
+            var [x, y] = getDecartShifted(r + 130, ang, xr, yr);
+            this.lines.push(new Line(ang + Math.PI / 2, x, y));
+        }
+
+    }
+    getArea (x, y) {
+        var isFlow = this.getAreaByDelimeter(x, y);
+        var acc = 0;
+        for (var line of this.lines) {
+            acc += line.isGreater(x, y);
+        }
+        return (isFlow + acc) % 4;
+    }
+}

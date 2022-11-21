@@ -16,3 +16,24 @@ function randomFromRange(range) {
 function normAngle(angle) {
     return angle / 180 * Math.PI;
 }
+
+function getPhi(x, y) {
+    if (x > 0 & y >= 0) {
+        return Math.atan(y / x);
+    }
+    if (x > 0 & y < 0) {
+        return Math.atan(y / x) + Math.PI * 2;
+    }
+    if (x < 0) {
+        return Math.atan(y / x) + Math.PI;
+    }
+    return Math.PI / 2;
+}
+
+function getDecart (ro, phi) {
+    return [ro * Math.cos(phi) + xBufferSize / 2, ro * Math.sin(phi) + yBufferSize / 2];
+}
+
+function getDecartShifted(ro, phi, x0, y0) {
+    return [ro * Math.cos(phi) + x0, ro * Math.sin(phi) + y0];
+}

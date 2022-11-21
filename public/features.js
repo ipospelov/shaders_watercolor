@@ -15,7 +15,7 @@ var brushStyle1 = randomInt(0, brushStyles.length - 1);
 var brushStyle2 = randomInt(0, brushStyles2.length - 1);
 
 var sceneRand = fxrand();
-var sceneClass = ExtraFlowDelimiterScene;
+var sceneClass = ExtraFlowDelimiterScene; //ExtraFlowDelimiterScene;
 var sceneIndex = 0;
 
 
