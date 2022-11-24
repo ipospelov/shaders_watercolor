@@ -37,3 +37,32 @@ function getDecart (ro, phi) {
 function getDecartShifted(ro, phi, x0, y0) {
     return [ro * Math.cos(phi) + x0, ro * Math.sin(phi) + y0];
 }
+
+class Line {
+    constructor (phi, x0, y0) {
+        this.k = Math.tan(phi);
+        this.x0 = x0;
+        this.y0 = y0;
+    }
+
+    isGreater (x, y) {
+        var xn = x - xBufferSize / 2;
+        var yn = y - yBufferSize / 2;
+        if (yn - this.y0 > this.k * (xn - this.x0)) {
+            return 0;
+        }
+        return 1;
+    }
+}
+
+
+function inCircle(minR, maxR, xCenter, yCenter, x, y) {
+    var x = x - xBufferSize / 2;
+    var y = y - yBufferSize / 2;
+    var r2 = (x - xCenter) ** 2 + (y - yCenter) ** 2;
+    if (r2 < maxR ** 2 & r2 > minR ** 2) {
+        return true;
+    }
+
+    return false;
+}

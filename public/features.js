@@ -4,20 +4,31 @@ var brushStyles = [
     [0.009, 0, 30],
 ]
 var brushStyles2 = [
-    [0.09],
+    [0.09, 0, 10],
     [0.0009, 0, 340],
     [0.0009, 0, 640],
     [0.009, 0, 30],
     [0.0009, 0, 11640],
 ]
 
-var brushStyle1 = randomInt(0, brushStyles.length - 1);
-var brushStyle2 = randomInt(0, brushStyles2.length - 1);
+var brushStyle1 = 1//randomInt(0, brushStyles.length - 1);
+var brushStyle2 = 1//randomInt(0, brushStyles2.length - 1);
 
 var sceneRand = fxrand();
-var sceneClass = ExtraFlowDelimiterScene; //ExtraFlowDelimiterScene;
-var sceneIndex = 0;
-
+var scenes = [
+    SquaresScene,
+    MonoAngleScene,
+    CirclesScene,
+    RectShapesScene,
+    ManyLinesScene,
+    DoubleLineScene,
+    LowAmountScene,
+    TwoFocusesScene,
+    SimpleLinesScene
+]
+ 
+var sceneIndex = randomInt(0, scenes.length - 1);
+var sceneClass = SimpleLinesScene; //ExtraFlowDelimiterScene;
 
 var paletteIndex = randomInt(0, palettes.length - 1);
 

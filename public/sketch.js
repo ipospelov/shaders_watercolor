@@ -6,8 +6,8 @@ var yBufferSize = xBufferSize * ratio;
 var frameWidth = 150;
 var windowEdgeSize;
 
-var xi = 0;
-var yi = 0;
+var xi = -100;
+var yi = -100;
 
 var palette;
 
@@ -24,24 +24,29 @@ var stages = [
     },
     {
         "stage": "filling",
-        "iters": 7,
+        "iters": 2,
         "title": "Stage 1/4 - paper texturing"
     },
     {
-        "stage": "structure",
-        "iters": 0,
-        "title": "Stage 2/4 - structure"
+        "stage": "drawing",
+        "iters": 2,
+        "title": "Stage 3/4 - coloring"
     },
     {
-        "stage": "drawing",
-        "iters": 0,
-        "title": "Stage 3/4 - coloring"
+        "stage": "filling",
+        "iters": 4,
+        "title": "Stage 1/4 - paper texturing"
     },
     {
         "stage": "post-noise",
         "iters": 0,
         "title": "Stage 4/4 - loaning noise texture"
-    }
+    },
+    {
+        "stage": "filling",
+        "iters": 0,
+        "title": "Stage 1/4 - paper texturing"
+    },
 ]
 var currIter = 0;
 var currStage = 0;
@@ -68,7 +73,7 @@ function setup() {
 
     myCanvas.style('display', 'block');
 
-    palette = palettes[10];
+    palette = palettes[4];
     //palette = palettes[paletteIndex];
 
     //noiseSeed(1);
@@ -128,39 +133,14 @@ function drawIsoline (x, y) {
     myScene.setDefaultArea(defaultArea);
 
     buffer.noFill();
-    buffer.beginShape();
+    buffer.beginShape(POINTS);
 
-    var maxAlpha = 255;
-    var minAlpha = 25;
-    var maxWeight = 2;
-    var minWeight = 0.4;
-
-    var yFrameSize = (yBufferSize / 2) - frameWidth;
-    var yRo = Math.abs(y - yBufferSize / 2);
-
-    var xFrameSize = (xBufferSize / 2) - frameWidth;
-    var xRo = Math.abs(x - xBufferSize / 2);
-
-    if (xRo > yRo) {
-        var ro = xRo;
-        var frameSize = xFrameSize;
-    } else {
-        var ro = yRo;
-        var frameSize = yFrameSize;
-    }
-    var randCoef =  ro / frameSize;
-
-    //var alpha = map(randCoef, 0, 1, maxAlpha, minAlpha);
-    var strokeWeight = map(randCoef, 0, 1, maxWeight, minWeight);
-
-    buffer.strokeWeight(0.5);
+    buffer.strokeWeight(2.5);
 
     var color = pointStyle["color"];
     buffer.stroke(...color, 70);
-    var noiseSize = 20;
-    var iters = area == 1 ? 150 : 50;
 
-    for (i = 0; i < iters; i++) {
+    for (i = 0; i < 50; i++) {
         var minDiff = Infinity;
         
         pointStyle = myScene.getPointStyle(x, y);
@@ -173,34 +153,34 @@ function drawIsoline (x, y) {
         }
 
         if (area == 1) {
-            var phi = getPhi(x - xBufferSize / 2, y - yBufferSize / 2);
-            var ro = Math.sqrt((x - xBufferSize / 2) ** 2 + (y - yBufferSize / 2) ** 2);
+            // var phi = getPhi(x - xBufferSize / 2, y - yBufferSize / 2);
+            // var ro = Math.sqrt((x - xBufferSize / 2) ** 2 + (y - yBufferSize / 2) ** 2);
     
-            var randCoef = noise(ro, phi * 0.01);
-            randCoef = map(randCoef, 0, 1, -1, 1) / 8;
+            // var randCoef = noise(ro, phi * 0.01);
+            // randCoef = map(randCoef, 0, 1, -1, 1) / 8;
     
             // var radiusCoef = ro / (xBufferSize / 2);
     
             // var [rx, ry] = getDecart(ro, phi + randCoef * radiusCoef);
     
-            var randCoef = map(ro / (xBufferSize / 2), 0, 1, 0, 0.5);
-            var randX = fxRandRanged(-noiseSize, noiseSize) * 1;
-            var randY = fxRandRanged(-noiseSize, noiseSize) * 1;
+            // var randCoef = map(ro / (xBufferSize / 2), 0, 1, 0, 0.5);
+            // var randX = fxRandRanged(-noiseSize, noiseSize) * 1;
+            // var randY = fxRandRanged(-noiseSize, noiseSize) * 1;
     
-            var xDraw = x + randX;
-            var yDraw = y + randY;
+            var xDraw = x;
+            var yDraw = y;
         } else if (area == 2 || area == 3) {
-            var ro = Math.sqrt((x - xBufferSize / 2) ** 2 + (y - yBufferSize / 2) ** 2);
+            // var ro = Math.sqrt((x - xBufferSize / 2) ** 2 + (y - yBufferSize / 2) ** 2);
 
-            var randCoef = map(ro / (xBufferSize / 2), 0, 1, 0.1, 0.5);
-            var randX = fxRandRanged(-noiseSize, noiseSize) * 1;
-            var randY = fxRandRanged(-noiseSize, noiseSize) * 1;
+            // var randCoef = map(ro / (xBufferSize / 2), 0, 1, 0.1, 0.5);
+            // var randX = fxRandRanged(-noiseSize, noiseSize) * 1;
+            // var randY = fxRandRanged(-noiseSize, noiseSize) * 1;
 
-            var xDraw = x + randX;
-            var yDraw = y + randY;
+            var xDraw = x;
+            var yDraw = y;
         } else {
             buffer.stroke(...color, 100);
-            buffer.strokeWeight(0.8);
+            buffer.strokeWeight(1.8);
 
             var xDraw = x;
             var yDraw = y;
@@ -294,63 +274,8 @@ function drawFrameBorder () {
     }
 }
 
-function drawFlowBorder (x, y) {
-    if (myScene.isInFrame(x, y)) {
-        return;
-    }
-
-    buffer.strokeWeight(0.4);
-    buffer.stroke(255);
-
-    var noiseGetter = myScene.getFlowMarginNoise(x, y);
-    if (!noiseGetter) {
-        return;
-    }
-    var currHeight = noiseGetter.get(x, y);
-    var xNext, yNext, angleStep = 15, r = 3, angleNext, prevAngle;
-    buffer.beginShape();
-
-    var nIters = fxRandRanged(170, 230);
-    for (i = 0; i < nIters; i++) {
-        var minDiff = Infinity;
-
-        if (!myScene.getFlowMarginNoise(x, y)) {
-            break;
-        }
-        if (myScene.isInFrame(x, y)) {
-            break;
-        }
-
-        buffer.curveVertex(x + fxRandRanged(-1, 1), y + fxRandRanged(-1, 1));
-        for (var angle = 0; angle < 360; angle += angleStep) {
-            if (Math.abs(prevAngle - angle) == 180) {
-                continue
-            }
-
-            var angleNorm = map(angle, 0, 360, 0, 2 * Math.PI);
-
-            var xPretend = x + r * Math.cos(angleNorm);
-            var yPretend = y + r * Math.sin(angleNorm);
-
-            var height = noiseGetter.get(xPretend, yPretend);
-            var currDiff = Math.abs(currHeight - height);
-
-            if (currDiff < minDiff) {
-                minDiff = currDiff;
-                xNext = xPretend;
-                yNext = yPretend;
-                angleNext = angle;
-            }
-        }
-        x = xNext;
-        y = yNext;
-        prevAngle = angleNext;
-    }
-    buffer.endShape();
-}
-
 function fillAreas (x, y) {
-    palette = palettes[0];
+    //palette = palettes[palettes.length - 1];
 
     // if (myScene.isInFrame(x, y)) {
     //     return;
@@ -379,36 +304,9 @@ function fillAreas (x, y) {
 
 function reinit () {
     noiseSeed(fxRandRanged(0, 2000));
-    var brushStyles = [
-        [0.0009, 0, 340],
-        [0.0009, 0, 640],
-        [0.009, 0, 30],
-        //[0.00001, 0, 2410],
-    ]
-    var brushStyles2 = [
-        [0.009],
-        [0.09],
-        [0.05],
-        [0.0008],
-    ]
     
-    brushStyle1 = randomInt(0, brushStyles.length - 1);
-    brushStyle2 = randomInt(0, brushStyles2.length - 1);
-    
-    var sceneRand = fxrand();
-    sceneClass = ExtraFlowDelimiterScene;
-    if (sceneRand <= 0.7) {
-        sceneClass = ExtraFlowDelimiterScene;
-        sceneIndex = 0;
-    } else {
-        sceneClass = SimpleLinesDelimeter;
-        sceneIndex = 1;
-    }
-    
-    console.log(brushStyle1, brushStyle2, sceneClass.toString());
-    console.log(brushStyles[brushStyle1], brushStyles2[brushStyle2])
-
-    myScene = new sceneClass();
+    sceneIndex = randomInt(0, scenes.length - 1);
+    myScene = new scenes[sceneIndex];
 
     paletteIndex = randomInt(0, palettes.length - 1);
     palette = palettes[paletteIndex];
@@ -442,9 +340,9 @@ function draw() {
                     return;
                 }
 
-                //save(buffer, `scene_${sceneIndex}_palette_${paletteIndex}.png`);
-                console.log(currStill, nStills);
-                //reinit();
+                // save(buffer, `scene_${sceneIndex}_palette_${paletteIndex}.png`);
+                // console.log(currStill, nStills);
+                // reinit();
             }
             return;
         }
@@ -453,8 +351,6 @@ function draw() {
         var maxStageIters = stages[currStage]["iters"];
         if (stage == "pre-noise") {
             drawNoise(xi, yi, 0.4);
-        } else if (stage == "structure") {
-            drawFlowBorder(xi, yi);
         } else if (stage == "drawing") {
             drawIsoline(xi, yi);
         } else if (stage == "post-noise") {
@@ -469,12 +365,12 @@ function draw() {
         }
 
         xi += fxRandRanged(...step);
-        if (xi > xBufferSize) {
-            xi = 0;
+        if (xi > xBufferSize + 100) {
+            xi = -100;
             yi += fxRandRanged(...step);
         }
-        if (yi >= yBufferSize) {
-            yi = 0;
+        if (yi >= yBufferSize + 100) {
+            yi = -100;
             currIter++;
         }
 
