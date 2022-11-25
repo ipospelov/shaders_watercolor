@@ -1,82 +1,112 @@
-var brushStyles = [
-    [0.0009, 0, 340],
-    [0.0009, 0, 640],
-    [0.009, 0, 30],
-]
-var brushStyles2 = [
-    [0.09, 0, 10],
-    [0.0009, 0, 340],
-    [0.0009, 0, 640],
-    [0.009, 0, 30],
-    [0.0009, 0, 11640],
-]
-
-var brushStyle1 = 1//randomInt(0, brushStyles.length - 1);
-var brushStyle2 = 1//randomInt(0, brushStyles2.length - 1);
-
-var sceneRand = fxrand();
 var scenes = [
-    SquaresScene,
-    MonoAngleScene,
-    CirclesScene,
-    RectShapesScene,
-    ManyLinesScene,
     DoubleLineScene,
-    LowAmountScene,
+    SimpleLinesScene,
+    ManyLinesScene,
+    SquaresScene,
+    DividedScene,
+    DoubleCircle,
+    MonoAngleScene,
+    SpiralCorners,
+    CircleDividedScene,
+    ThinLinesScene,
+    RectShapesScene,
     TwoFocusesScene,
-    SimpleLinesScene
+    CirclesScene,
+    LowAmountScene,
 ]
- 
-var sceneIndex = randomInt(0, scenes.length - 1);
-var sceneClass = SimpleLinesScene; //ExtraFlowDelimiterScene;
+
+var sceneIndex;
+var sceneClass = DoubleLineScene;
+var sceneRand = fxrand();
+if (sceneRand <= 0.02) {
+    sceneClass = LowAmountScene;
+    sceneIndex = 1;
+} else if (sceneRand <= 0.05) {
+    sceneClass = CirclesScene;
+    sceneIndex = 2;
+} else if (sceneRand <= 0.08) {
+    sceneClass = TwoFocusesScene;
+    sceneIndex = 3;
+} else if (sceneRand <= 0.12) {
+    sceneClass = RectShapesScene;
+    sceneIndex = 4;
+} else if (sceneRand <= 0.16) {
+    sceneClass = ThinLinesScene;
+    sceneIndex = 5;
+} else if (sceneRand <= 0.2) {
+    sceneClass = CircleDividedScene;
+    sceneIndex = 6;
+} else if (sceneRand <= 0.25) {
+    sceneClass = SpiralCorners;
+    sceneIndex = 7;
+} else if (sceneRand <= 0.3) {
+    sceneClass = MonoAngleScene;
+    sceneIndex = 8;
+} else if (sceneRand <= 0.4) {
+    sceneClass = DoubleCircle;
+    sceneIndex = 9;
+} else if (sceneRand <= 0.5) {
+    sceneClass = DividedScene;
+    sceneIndex = 10;
+} else if (sceneRand <= 0.6) {
+    sceneClass = SquaresScene;
+    sceneIndex = 11;
+} else if (sceneRand <= 0.7) {
+    sceneClass = ManyLinesScene;
+    sceneIndex = 12;
+} else if (sceneRand <= 0.8) {
+    sceneClass = SimpleLinesScene;
+    sceneIndex = 13;
+} else {
+    sceneClass = DoubleLineScene;
+    sceneIndex = 14;
+}
 
 var paletteIndex = randomInt(0, palettes.length - 1);
 
 window.$fxhashFeatures = {
-    "Brush style 1": brushStyle1 + 1,
-    "Brush style 2": brushStyle2 + 1,
-    "Scene generator": sceneClass.toString(),
+    "Style index #": sceneIndex,
+    "Palette index #": paletteIndex
 }
-console.log(brushStyle1, brushStyle2, sceneClass.toString());
-console.log(brushStyles[brushStyle1], brushStyles2[brushStyle2])
 
-
-var delimeterPercentiles = [
-    // [
-    //     [0.1, 0.15],
-    //     [0.3, 0.35],
-    //     [0.4, 0.45],
-    //     [0.5, 0.55],
-    //     [0.8, 0.85],
-    // ],
-    [
-        [0.1, 0.15],
-        [0.5, 0.55],
-        [0.8, 0.85],
-    ],
-    // [
-    //     [0.1, 0.2],
-    //     [0.8, 0.9]
-    // ],
-    // [
-    //     [0.1, 0.2],
-    //     [0.4, 0.5],
-    //     [0.8, 0.9]
-    // ],
-    // [
-    //     [0.1, 0.3],
-    //     [0.6, 0.9]
-    // ],
+var curlicuesParams = [
+    {
+        "percentiles": [
+            [0.1, 0.12],
+            [0.2, 0.22],
+            [0.3, 0.32],
+            [0.5, 0.52],
+            [0.8, 0.82],
+            [0.9, 0.92]
+        ],
+        "step": 0.0008
+    },
+    {
+        "percentiles": [
+            [0.1, 0.15],
+            [0.2, 0.25],
+            [0.3, 0.35],
+            [0.5, 0.55],
+        ],
+        "step": 0.008
+    },
+    {
+        "percentiles": [
+            [0.1, 0.25],
+            [0.3, 0.45],
+            [0.5, 0.65],
+        ],
+        "step": 0.008
+    },
+    {
+        "percentiles": [
+            [0.1, 0.15],
+            [0.5, 0.55],
+            [0.8, 0.85],
+        ],
+        "step": 0.008
+    }
 ];
-var delRand = fxrand();
-var delIndex = 0;
-// if (delRand < 0.05) {
-//     delIndex = 3;
-// } else if (delRand < 0.1) {
-//     delIndex = 2;
-// } else if (delRand < 0.25){
-//     delIndex = 1;
-// } else {
-//     delIndex = 0;
-// }
-console.log(delimeterPercentiles[delIndex], delIndex)
+
+var paramRand = randomInt(0, 3);
+var delParams = curlicuesParams[paramRand];

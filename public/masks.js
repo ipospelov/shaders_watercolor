@@ -48,69 +48,36 @@ class NoiseCache {
     }
 }
 
-
-
 class Scene {
     constructor () {
-        this.flowNoise = new NoiseCache(...brushStyles[brushStyle1]);
-        this.flowNoise2 = new NoiseCache(...brushStyles2[brushStyle2]);
+        this.flowNoise = new NoiseCache(0.0009, 0, 340);
 
         this.colorNoise = new NoiseCache(0.001, 1231);
         this.colorNoise2 = new NoiseCache(0.001, 1231, 1, 0.2);
         
-        var circleStep = 0.008;
+        var circleStep = delParams.step;
         this.circleNoise = new NoiseCache(circleStep);
         this.delimeterNoise = new NoiseCache(circleStep);
 
         this.noiseByArea = {
             0: this.flowNoise,
             1: this.circleNoise,
-            2: this.flowNoise2,
+            2: this.flowNoise,
             3: this.circleNoise,
         }
-        this.styleByArea = {
-            0: "flow",
-            1: "flow",
-            2: "flow",
-            3: "flow",
-        }
 
-        this.colorByIsRiver = {
-            true: {
-                0: true,
-                1: true,
-                2: false,
-                3: false,
-            },
-            false: {
-                0: false,
-                1: false,
-                2: true,
-                3: true
-            }
+        this.isRevertedByArea = {
+            0: false,
+            1: false,
+            2: true,
+            3: true
         };
 
-        this.defaultArea = 0;
-
-        this.delimeterPercentiles = delimeterPercentiles[delIndex];
-    }
-
-    static toString () {
-        return "Default scene";
+        this.delimeterPercentiles = delParams.percentiles;
     }
 
     setDefaultArea (area) {
         this.defaultArea = area;
-    }
-
-    isInFrame (x, y) {
-        var xOut = x <= frameWidth || x >= xBufferSize - frameWidth;
-        var yOut = y <= frameWidth || y >= yBufferSize - frameWidth;
-
-        if (xOut || yOut) {
-            return true;
-        }
-        return false;
     }
 
     isLeftArea (area) {
@@ -133,14 +100,8 @@ class Scene {
         return {
             "area": area,
             "noise": noiseVal,
-            "color": color,
-            "style": this.styleByArea[area]
+            "color": color
         }
-    }
-
-    getHeight (x, y, area) {
-        var noiseGenerator = this.noiseByArea[area];
-        return noiseGenerator.get(x, y);
     }
 
     getArea (x, y) {
@@ -168,18 +129,7 @@ class Scene {
     }
 
     getColor (height, area, noiseGenerator) {
-        var riverPercentiles = [0.15, 0.35];
-        var isRiver = false;
-        var p1, p2;
-
-        // p1 = noiseGenerator.getPercentile(riverPercentiles[0]);
-        // p2 = noiseGenerator.getPercentile(riverPercentiles[1]);
-        // if (height >= p1 & height <= p2) {
-        //     isRiver = true;
-        // }
-
-        var isReverted = this.colorByIsRiver[isRiver][area];
-
+        var isReverted = this.isRevertedByArea[area];
         return this.mixColors(isReverted, height, noiseGenerator);
     }
 
@@ -201,47 +151,6 @@ class Scene {
     }
 }
 
-class ExtraFlowDelimiterScene extends Scene {
-    constructor () {
-        super();
-
-        this.noises = [];
-        for (var i = 0; i < 100; i++) {
-            this.noises.push(new NoiseCache(0.0000001, fxRandRanged(-10000, 10000)));
-        }
-        this.percentiles = [
-            [0.0, 0.3],
-            [0.6, 1],
-            //[0.1, 0.2],
-            //[0.45, 0.55],   
-            //[0.56, 0.57],
-        ]
-    }
-
-    static toString () {
-        return "Flow scene 3";
-    }
-
-    getArea (x, y) {
-        var isFlow = this.getAreaByDelimeter(x, y) + 0; // + 3
-        var acc = 0;
-
-        for (var noiseMap of this.noises) {
-            var h = noiseMap.get(x, y);
-            for (var perc of this.percentiles) {
-                var v1 = perc[0];
-                var v2 = perc[1];
-                if (h < noiseMap.getPercentile(v2) & h >= noiseMap.getPercentile(v1)) {
-                    acc += 1;
-                    break;
-                }
-            }
-        }
-
-        return (isFlow + acc) % 4;
-    }
-}
-
 class SimpleLinesScene extends Scene {
     constructor () {
         super();
@@ -250,8 +159,9 @@ class SimpleLinesScene extends Scene {
     }
 
     createLines () {
-        var r = 100;
-        for (var i = 0; i < 50; i++) {
+        var r = fxRandRanged(100, 200);
+        var iters = randomInt(30, 70);
+        for (var i = 0; i < iters; i++) {
             var ang = map(noise(i * 0.1), 0, 1, 0, 2 * Math.PI);
 
             var [x, y] = getDecartShifted(r, ang, 0, 0);
@@ -275,9 +185,10 @@ class SimpleLinesScene extends Scene {
 
 class TwoFocusesScene extends SimpleLinesScene {
     createLines () {
-        var r = 500;
+        var r = randomInt(300, 600);
         var x0 = 0, y0 = 0;
-        for (var i = 0; i < 11; i++) {
+        var iters = randomInt(11, 51);
+        for (var i = 0; i < iters; i++) {
             var ang = map(noise(i * 0.1), 0, 1, 0, 2 * Math.PI);
 
             var [x, y] = getDecartShifted(r, ang, x0, y0);
@@ -288,8 +199,10 @@ class TwoFocusesScene extends SimpleLinesScene {
             this.lines.push(new Line(ang + Math.PI / 2, x, y));
         }
 
-        var x0 = -100, y0 = 500;
-        for (var i = 0; i < 11; i++) {
+        var phi = fxRandRanged(0, 2 * Math.PI);
+        var [x0, y0] = getDecartShifted(r, phi, 0, 0);
+        var iters = randomInt(11, 51);
+        for (var i = 0; i < iters; i++) {
             var ang = fxRandRanged(0, 2 * Math.PI)
 
             var [x, y] = getDecartShifted(r, ang, 0, 0);
@@ -304,7 +217,7 @@ class TwoFocusesScene extends SimpleLinesScene {
 
 class LowAmountScene extends SimpleLinesScene {
     createLines () {
-        var r = 300;
+        var r = randomInt(100, 400);
         var x0 = 0, y0 = 0;
         for (var i = 0; i < 7; i++) {
             var ang = fxRandRanged(0, 2 * Math.PI)
@@ -321,9 +234,10 @@ class LowAmountScene extends SimpleLinesScene {
 
 class DoubleLineScene extends SimpleLinesScene {
     createLines () {
-        var r = 100;
+        var r = randomInt(80, 150);
         var x0 = 0, y0 = 0;
-        for (var i = 0; i < 20; i++) {
+        var iters = randomInt(15, 50);
+        for (var i = 0; i < iters; i++) {
             var ang = map(noise(i), 0, 1, 0, 2 * Math.PI);
 
             var [x, y] = getDecartShifted(r, ang, x0, y0);
@@ -364,9 +278,10 @@ class DoubleLineScene extends SimpleLinesScene {
 
 class ManyLinesScene extends DoubleLineScene {
     createLines () {
-        var r = 150;
+        var r = randomInt(130, 250);
         var x0 = 0, y0 = 0;
-        for (var i = 0; i < 90; i++) {
+        var iters = randomInt(70, 100);
+        for (var i = 0; i < iters; i++) {
             if (i < 10) {
                 var ang = map(noise(i), 0, 1, 0, 2 * Math.PI);
             } else {
@@ -389,9 +304,9 @@ class RectShapesScene extends DoubleLineScene {
     createLines () {
         var r = 150;
         var x0 = 0, y0 = 0;
-
-        for (var r = 10; r < 1000; r += 100) {
-            for (var i = 0; i < 3; i++) {
+        var iters = randomInt(2, 3);
+        for (var r = 10; r < 1000; r += randomInt(80, 200)) {
+            for (var i = 0; i < iters; i++) {
                 var ang = fxRandRanged(0, 2 * Math.PI)
                 
                 var [x, y] = getDecartShifted(r, ang, x0, y0);
@@ -409,11 +324,7 @@ class RectShapesScene extends DoubleLineScene {
 
 class CirclesScene extends DoubleLineScene {
     createLines () {
-        
         var x0 = 0, y0 = 0;
-
-        var r = 10;
-
         for (var r of [10, 100, 200, 500]) {
             for (var i = 0; i < 10; i++) {
                 var ang = fxRandRanged(0, 2 * Math.PI)
@@ -434,10 +345,10 @@ class CirclesScene extends DoubleLineScene {
 class MonoAngleScene extends DoubleLineScene {
     createLines () {
         var x0 = 0, y0 = 0;
-        var r = 300;
-        var angShift = fxRandRanged(-Math.PI / 5, Math.PI / 5)
+        var r = randomInt(100, 300);
+        var angShift = fxRandRanged(0, Math.PI / 2);
         for (var i = 0; i < 40; i++) {
-            var ang = fxRandRanged(0, Math.PI / 2) + angShift;
+            var ang = fxRandRanged(-Math.PI / 5, Math.PI / 5) + angShift;
             
             var [x, y] = getDecartShifted(r, ang, x0, y0);
             var l1 = new Line(ang + Math.PI / 2, x, y);
@@ -593,12 +504,12 @@ class CircleDividedScene extends SimpleLinesScene {
     constructor () {
         super();
 
-        this.rStep = fxRandRanged(150, 250);
+        this.rStep = fxRandRanged(300, 450);
         this.circleRadiuses = [];
         this.linesArr = [];
         for (var r = this.rStep; r < xBufferSize; r += this.rStep) {
             this.circleRadiuses.push(r);
-            this.linesArr.push(this.createLines(fxRandRanged(0, r), fxRandRanged(10, 70)));
+            this.linesArr.push(this.createLines(fxRandRanged(1, r), fxRandRanged(10, 70)));
         }
     }
 
@@ -703,5 +614,34 @@ class SpiralCorners extends SimpleLinesScene {
             }
         }
         return (isFlow + acc) % 4;
+    }
+}
+
+class ThinLinesScene extends DoubleLineScene {
+    createLines () {
+        var x0 = 0, y0 = 0;
+        var iters = 5;
+        for (var r of [130, 160, 190, 220]) {
+            for (var i = 0; i < iters; i++) {
+                var ang = map(noise(i), 0, 1, 0, 2 * Math.PI);
+    
+                var [x, y] = getDecartShifted(r, ang, x0, y0);
+                var l1 = new Line(ang + Math.PI / 2, x, y);
+        
+                ang -= Math.PI;
+                var [x, y] = getDecartShifted(r, ang, x0, y0);
+                var l2 = new Line(ang + Math.PI / 2, x, y);
+    
+                this.lines.push([l1, l2]);
+    
+                var [x, y] = getDecartShifted(r + r, ang, x0, y0);
+                var l1 = new Line(ang + Math.PI / 2, x, y);
+    
+                var [x, y] = getDecartShifted(r + r + 50, ang, x0, y0);
+                var l2 = new Line(ang + Math.PI / 2, x, y);
+    
+                this.lines.push([l1, l2]);
+            }
+        }
     }
 }
