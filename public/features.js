@@ -1,20 +1,3 @@
-var scenes = [
-    DoubleLineScene,
-    SimpleLinesScene,
-    ManyLinesScene,
-    SquaresScene,
-    DividedScene,
-    DoubleCircle,
-    MonoAngleScene,
-    SpiralCorners,
-    CircleDividedScene,
-    ThinLinesScene,
-    RectShapesScene,
-    TwoFocusesScene,
-    CirclesScene,
-    LowAmountScene,
-]
-
 var sceneIndex;
 var sceneClass = DoubleLineScene;
 var sceneRand = fxrand();
@@ -66,7 +49,7 @@ var paletteIndex = randomInt(0, palettes.length - 1);
 
 window.$fxhashFeatures = {
     "Style index #": sceneIndex,
-    "Palette index #": paletteIndex
+    "Palette index #": paletteIndex + 1
 }
 
 var curlicuesParams = [

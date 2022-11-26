@@ -293,19 +293,6 @@ function mixColors(color1, color2, intensity) {
     });
 }
 
-var colorRanges = [
-    [0, 0.1],
-    [0.1, 0.2],
-    [0.2, 0.3],
-    [0.3, 0.4],
-    [0.4, 0.5],
-    [0.5, 0.6],
-    [0.6, 0.7],
-    [0.7, 0.8],
-    [0.8, 0.9],
-    [0.9, 1]
-]
-
 function multipleMixColors(color1, color2, height, noiseGenerator) {
     var p1 = 0, p2 = 1;
     for (var range of noiseGenerator.colorPercentiles) {

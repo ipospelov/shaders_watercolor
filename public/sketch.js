@@ -296,6 +296,6 @@ function draw() {
 
 function keyTyped() {
     if (key === 's') {
-        save(buffer, 'corriente.png');
+        save(buffer, 'crisitiva.png');
     }
 };
