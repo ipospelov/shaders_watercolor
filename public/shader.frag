@@ -158,7 +158,7 @@ void main() {
     st.x *= u_resolution.x / u_resolution.y;
 
     float seed = floor(u_time * 0.03);
-    float scale2 = 0.55 + 0.075 * mod(seed, 3.);
+    float scale = 0.55 + 0.075 * mod(seed, 3.);
 
     float r = length(st) * 3.;
 
@@ -167,24 +167,37 @@ void main() {
     texture_mask = vec3(1.0) - texture_mask;
 
     
-    float noise_val = scale2 * perlin(st) + r;
+    float noise_val = scale * perlin(st) + r;
     
-    vec3 color = vec3(smoothstep(0.4, 0.42, noise_val)); // Чёрные всплески
-    color -= vec3(smoothstep(.35, 0.39, noise_val)) - vec3(1.0); // Отверстия во всплесках
-    //color = vec3(1.0) - color;
+    vec3 color = vec3(step(0.4, noise_val)); // Чёрные всплески
+    color -= vec3(smoothstep(.37, 0.4, noise_val)) - vec3(1.0); // Отверстия во всплесках
+    color = vec3(1.0) - color;
     //color *= 1.5;
+    
+
+    vec3 color2 = vec3(smoothstep(.4, 0.37, noise_val)) / 1.3; // Чёрные всплески   
+    color2 -= vec3(smoothstep(0.4, -0.3, noise_val)); // Отверстия во всплесках
+
+    color += color2;
+    
+   // vec3 coloredBlot2 = color2 * mix(colorA, colorB, noise(st * 15.));
     vec3 coloredBlot = color * mix(colorA, colorB, noise(st * 5.));
 
-    //color *= texture_mask;
-    //color *= texture_mask + vec3(0.1);
-    //color = vec3(1.0) - color;
+    color *= texture_mask;
+    color *= texture_mask + vec3(0.1);
+    color = vec3(1.0) - color;
     //color *= bgColor;
 
     vec3 mixedColor = coloredBlot + color;
+
+    texture_mask *= noise(st * 1012.);
+    texture_mask /= 8.5;
+    texture_mask = vec3(1.0) - texture_mask;
     
     vec3 bg = bgColor * texture_mask;
 
     vec4 finalMix = vec4(mixedColor, 1.) * vec4(bg, 1.);
 
-    gl_FragColor = vec4(color, 1.);
+    //gl_FragColor = vec4(color, 1.);
+    gl_FragColor = finalMix;
 }
