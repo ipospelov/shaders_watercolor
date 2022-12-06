@@ -146,62 +146,84 @@ vec3 colorB = vec3(0.247, 0.0, 0.443);
 vec3 colorC = vec3(255./255., 178./255., 0./255.);
 vec3 colorD = vec3(255./255., 246./255., 191./255.);
 
+const mat4 fg_cols = mat4(0.,110.,202.,256., // blue
+						232., 141., 122.,256., // red
+						90., 188., 94.,256., // green
+						161., 90., 188. ,256.  )/256.; // purple 
+const vec4 bg_col = vec4(229.,204.,175.,256.)/256.;
+
+
 void main() {
-    vec2 st = gl_FragCoord.xy/u_resolution.xy;
-    float scale = 20.0;
-    float scale2 = 3.;
-    float r = length(st);
+    vec2 st = gl_FragCoord.xy / u_resolution.xy - 0.13;
+    st.x *= u_resolution.x / u_resolution.y;
+
+    float seed = floor(u_time * 0.03);
+    float scale2 = 0.55 + 0.075 * mod(seed, 3.);
+
+    float r = length(st) * 3.;
 
     float texture_noise = fract(snoise(st * 100.) * snoise(st * 1000.)) * 0.1;
     vec3 texture_mask = vec3(texture_noise);
     texture_mask = vec3(1.0) - texture_mask;
 
-    float noise_val = perlin(st * scale2) + noise(st * scale);
-    float holeVal = perlin(st * scale2) + noise(st * scale);
     
-    vec3 color = vec3(smoothstep(0.6, 0.63, noise_val)); // Чёрные всплески
-    color -= vec3(smoothstep(.6, 0.9, holeVal)) / 2.; // Отверстия во всплесках
-    color *= 1.5;
+    float noise_val = scale2 * perlin(st) + r;
+    
+    vec3 color = vec3(smoothstep(0.4, 0.42, noise_val)); // Чёрные всплески
+    color -= vec3(smoothstep(.35, 0.39, noise_val)) - vec3(1.0); // Отверстия во всплесках
+    //color *= 1.5;
     vec3 coloredBlot = color * mix(colorA, colorB, noise(st * 5.));
 
-    color *= texture_mask;
-    color *= texture_mask + vec3(0.1);
-    color = vec3(1.0) - color;
+    //color *= texture_mask;
+    //color *= texture_mask + vec3(0.1);
+    //color = vec3(1.0) - color;
     //color *= bgColor;
 
-    vec3 color2 = vec3(smoothstep(.6, 1., noise_val)); // Чёрные всплески
-    color2 -= vec3(smoothstep(.6, 1.9, holeVal)); // Отверстия во всплесках
-    color2 /= 1.5;
-    vec3 coloredBlot2 = color2 * mix(colorA, colorB, noise(st * 15.));
+    // vec3 color2;
+    // if (noise_val < 0.4) {
+    //     color2 = vec3(1.);
+    // } else {
+    //     color2 = vec3(0.);
+    // }
+    // color2 -= vec3(smoothstep(.6, 1.9, noise_val)); // Отверстия во всплесках
+    // color2 /= 1.5;
+    // vec3 coloredBlot2 = color2 * mix(colorA, colorB, noise(st * 15.));
 
-    color2 *= texture_mask + vec3(0.15);;
-    color2 *= texture_mask + vec3(0.2);
-    color2 = vec3(1.0) - color2;
-
-    vec2 st2 = st + vec2(1.4, 1.2);
-    // noise_val = perlin(st2 * scale2) + noise(st2 * scale);
-    // vec3 color3 = vec3(smoothstep(0.6, 0.63, noise_val)); // Чёрные всплески
-    // color3 -= vec3(smoothstep(.6, 0.9, noise_val)) / 2.; // Отверстия во всплесках
-    // color3 *= 1.5;
-    // vec3 coloredBlot3 = color3 * mix(colorC, colorD, noise(st * 15.));
-
-    // color3 *= texture_mask;
-    // color3 *= texture_mask + vec3(0.1);
-    // color3 = vec3(1.0) - color3;
+    // color2 *= texture_mask + vec3(0.15);;
+    // color2 *= texture_mask + vec3(0.2);
+    // color2 = vec3(1.0) - color2;
 
     vec3 mixedColor = coloredBlot + color;
-    vec3 mixedColor2 = coloredBlot2 + color2;
-    //vec3 mixedColor3 = coloredBlot3 + color3;
+    // vec3 mixedColor2 = coloredBlot2 + color2;
 
-    texture_mask *= noise(st2 * 1012.);
-    texture_mask /= 8.5;
-    texture_mask = vec3(1.0) - texture_mask;
+    // texture_mask *= noise(st2 * 1012.);
+    // texture_mask /= 8.5;
+    // texture_mask = vec3(1.0) - texture_mask;
     
     vec3 bg = bgColor * texture_mask;
 
-    //vec4 finalMix = vec4(mixedColor, 1.) * vec4(mixedColor2, 1.) * vec4(mixedColor3, 1.0) * vec4(bg, 1.);
-    vec4 finalMix = vec4(mixedColor, 1.) * vec4(mixedColor2, 1.) * vec4(bg, 1.);
+    vec4 finalMix = vec4(mixedColor, 1.) * vec4(bg, 1.);
 
-    //gl_FragColor = vec4(mixedColor2, 1.);
-    gl_FragColor = finalMix;
+    gl_FragColor = vec4(color, 1.);
+
+    // vec2 p = gl_FragCoord.xy / u_resolution.xy - 0.13;
+    // p.x *= u_resolution.x/u_resolution.y;
+    // float r = length(p) * 3.;
+    // float seed = floor(u_time * 0.03);
+    
+    // vec4 fg_col = vec4(colorA, 1.);
+    
+    // float noise_scale = 0.55 + 0.075 * mod(seed, 3.);
+    // float num_layers = 3.;// + 2. * mod(seed, 5.);
+    // seed *= num_layers;
+    
+    // float v = 0.;
+    
+
+    // float h = noise_scale * perlin(p) + r;
+    // if (h < 0.5) { 
+    //     v += 1. / num_layers; 
+    // }
+    
+    // gl_FragColor = mix(bg_col, fg_col, v); 
 }
