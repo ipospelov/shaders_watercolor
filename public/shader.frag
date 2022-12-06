@@ -154,7 +154,7 @@ const vec4 bg_col = vec4(229.,204.,175.,256.)/256.;
 
 
 void main() {
-    vec2 st = gl_FragCoord.xy / u_resolution.xy - 0.13;
+    vec2 st = gl_FragCoord.xy / u_resolution.xy - 0.14;
     st.x *= u_resolution.x / u_resolution.y;
 
     float seed = floor(u_time * 0.03);
@@ -171,6 +171,7 @@ void main() {
     
     vec3 color = vec3(smoothstep(0.4, 0.42, noise_val)); // Чёрные всплески
     color -= vec3(smoothstep(.35, 0.39, noise_val)) - vec3(1.0); // Отверстия во всплесках
+    //color = vec3(1.0) - color;
     //color *= 1.5;
     vec3 coloredBlot = color * mix(colorA, colorB, noise(st * 5.));
 
@@ -179,51 +180,11 @@ void main() {
     //color = vec3(1.0) - color;
     //color *= bgColor;
 
-    // vec3 color2;
-    // if (noise_val < 0.4) {
-    //     color2 = vec3(1.);
-    // } else {
-    //     color2 = vec3(0.);
-    // }
-    // color2 -= vec3(smoothstep(.6, 1.9, noise_val)); // Отверстия во всплесках
-    // color2 /= 1.5;
-    // vec3 coloredBlot2 = color2 * mix(colorA, colorB, noise(st * 15.));
-
-    // color2 *= texture_mask + vec3(0.15);;
-    // color2 *= texture_mask + vec3(0.2);
-    // color2 = vec3(1.0) - color2;
-
     vec3 mixedColor = coloredBlot + color;
-    // vec3 mixedColor2 = coloredBlot2 + color2;
-
-    // texture_mask *= noise(st2 * 1012.);
-    // texture_mask /= 8.5;
-    // texture_mask = vec3(1.0) - texture_mask;
     
     vec3 bg = bgColor * texture_mask;
 
     vec4 finalMix = vec4(mixedColor, 1.) * vec4(bg, 1.);
 
     gl_FragColor = vec4(color, 1.);
-
-    // vec2 p = gl_FragCoord.xy / u_resolution.xy - 0.13;
-    // p.x *= u_resolution.x/u_resolution.y;
-    // float r = length(p) * 3.;
-    // float seed = floor(u_time * 0.03);
-    
-    // vec4 fg_col = vec4(colorA, 1.);
-    
-    // float noise_scale = 0.55 + 0.075 * mod(seed, 3.);
-    // float num_layers = 3.;// + 2. * mod(seed, 5.);
-    // seed *= num_layers;
-    
-    // float v = 0.;
-    
-
-    // float h = noise_scale * perlin(p) + r;
-    // if (h < 0.5) { 
-    //     v += 1. / num_layers; 
-    // }
-    
-    // gl_FragColor = mix(bg_col, fg_col, v); 
 }
