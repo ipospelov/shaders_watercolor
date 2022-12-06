@@ -140,66 +140,76 @@ float perlin(vec2 uv) {
 }
 
 vec3 bgColor = vec3(0.96, 0.94, 0.9);
-vec3 colorA = vec3(0.611, 0.145, 0.302);
-vec3 colorB = vec3(0.247, 0.0, 0.443);
+
+vec3 colorA = vec3(240./255., 219./255., 219./255.);
+vec3 colorB = vec3(219./255., 163./255., 154./255.);
 
 vec3 colorC = vec3(255./255., 178./255., 0./255.);
 vec3 colorD = vec3(255./255., 246./255., 191./255.);
 
-const mat4 fg_cols = mat4(0.,110.,202.,256., // blue
-						232., 141., 122.,256., // red
-						90., 188., 94.,256., // green
-						161., 90., 188. ,256.  )/256.; // purple 
-const vec4 bg_col = vec4(229.,204.,175.,256.)/256.;
+vec3 colorE = vec3(245./255., 232./255., 199./255.);
+vec3 colorF = vec3(172./255., 112./255., 136./255.);
+
+vec3 wc_blob_mask (vec2 st, vec2 position, float size, float seed) {
+    st -= position;
+
+    float scale = size + 0.075 * mod(seed, 13.);
+    float r = length(st) * 3.;
+
+    float noise_val = scale * perlin(st) + r;
+
+    vec3 color = vec3(step(0.4, noise_val)); // Чёрные всплески
+    color -= vec3(smoothstep(.37, 0.4, noise_val)) - vec3(1.0); // Отверстия во всплесках
+    color = vec3(1.0) - color;
+
+    vec3 color2 = vec3(smoothstep(.4, 0.37, noise_val)); // Чёрные всплески   
+    color2 -= vec3(smoothstep(0.4, -0.3, noise_val)); // Отверстия во всплесках
+    float wc_stains = perlin(st * 5.);
+    color2 = color2 * wc_stains;
+
+    return color + color2;
+}
+
+vec3 colored_blob (vec2 st, vec3 mask, vec3 color_a, vec3 color_b) {
+    vec3 coloredBlot = mask * mix(color_a, color_b, noise(st * 10.));
+
+    vec3 wc_texture_mask = vec3(1.0 - fract(snoise(st * 100.) * snoise(st * 1000.)) * 0.12);
+
+    mask *= wc_texture_mask;
+    mask = vec3(1.0) - mask;
+
+    return coloredBlot + mask;
+}
 
 
 void main() {
     vec2 st = gl_FragCoord.xy / u_resolution.xy - 0.14;
     st.x *= u_resolution.x / u_resolution.y;
 
-    float seed = floor(u_time * 0.03);
-    float scale = 0.55 + 0.075 * mod(seed, 3.);
+    vec3 blob_mask = wc_blob_mask(st, vec2(0.03), 0.55, 2.);
+    vec3 mixedColor = colored_blob(st, blob_mask, colorC, colorD);
 
-    float r = length(st) * 3.;
+    vec3 blob_mask2 = wc_blob_mask(st, vec2(-0.05, 0.03), 0.55, 3.);
+    vec3 mixedColor2 = colored_blob(st, blob_mask2, colorA, colorB);
 
-    float texture_noise = fract(snoise(st * 100.) * snoise(st * 1000.)) * 0.1;
-    vec3 texture_mask = vec3(texture_noise);
-    texture_mask = vec3(1.0) - texture_mask;
+    vec3 blob_mask3 = wc_blob_mask(st, vec2(0.05, -0.05), 0.005, 11.);
+    vec3 mixedColor3 = colored_blob(st, blob_mask3, colorA, colorB);
 
-    
-    float noise_val = scale * perlin(st) + r;
-    
-    vec3 color = vec3(step(0.4, noise_val)); // Чёрные всплески
-    color -= vec3(smoothstep(.37, 0.4, noise_val)) - vec3(1.0); // Отверстия во всплесках
-    color = vec3(1.0) - color;
-    //color *= 1.5;
-    
+    vec3 blob_mask4 = wc_blob_mask(st, vec2(0.0), 0.001, 5.);
+    vec3 mixedColor4 = colored_blob(st, blob_mask4, colorE, colorF);
 
-    vec3 color2 = vec3(smoothstep(.4, 0.37, noise_val)); // Чёрные всплески   
-    color2 -= vec3(smoothstep(0.4, -0.3, noise_val)); // Отверстия во всплесках
-    float wc_texture = perlin(st * 5.);
-    color2 = color2 * wc_texture;
+    vec3 blobs = min(mixedColor, mixedColor2);
+    blobs = min(mixedColor3, blobs);
+    blobs = min(mixedColor4, blobs);
 
-    color += color2;
-    
-   // vec3 coloredBlot2 = color2 * mix(colorA, colorB, noise(st * 15.));
-    vec3 coloredBlot = color * mix(colorC, colorD, noise(st * 5.));
+    vec3 bg_texture_mask = vec3(1.0 - perlin(st * 1000.));
+    bg_texture_mask *= noise(st * 2012.);
+    bg_texture_mask /= 2.5;
+    bg_texture_mask = vec3(1.0) - bg_texture_mask;
+    vec3 bg = bgColor * bg_texture_mask;
 
-    color *= texture_mask;
-    color *= texture_mask + vec3(0.1);
-    color = vec3(1.0) - color;
-    //color *= bgColor;
+    vec4 finalMix = vec4(blobs, 1.) * vec4(bg, 1.);
 
-    vec3 mixedColor = coloredBlot + color;
-
-    texture_mask *= noise(st * 1012.);
-    texture_mask /= 8.5;
-    texture_mask = vec3(1.0) - texture_mask;
-    
-    vec3 bg = bgColor * texture_mask;
-
-    vec4 finalMix = vec4(mixedColor, 1.) * vec4(bg, 1.);
-
-    //gl_FragColor = vec4(color, 1.);
+    gl_FragColor = vec4(blobs, 1.);
     gl_FragColor = finalMix;
 }
