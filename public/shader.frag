@@ -149,12 +149,12 @@ vec3 colorE = vec3(245./255., 232./255., 199./255.);
 vec3 colorF = vec3(172./255., 112./255., 136./255.);
 
 vec3 wc_blob_mask (vec2 st, vec2 position, float size, float seed) {
-    st -= position;
+    vec2 st2 = st - position;
 
     float scale = size + 0.075 * mod(seed, 13.);
-    float r = length(st) * 3.;
+    float r = length(st2) * 3.;
 
-    float noise_val = scale * perlin(st) + r;
+    float noise_val = scale * perlin(st2 + fract(seed / 2.124)) + r;
 
     float tier = 0.5;
     float tier_delta = 0.03;
@@ -165,9 +165,14 @@ vec3 wc_blob_mask (vec2 st, vec2 position, float size, float seed) {
 
     vec3 color2 = vec3(smoothstep(tier, tier - tier_delta, noise_val)); // Чёрные всплески   
     color2 -= vec3(smoothstep(tier, -0.3, noise_val)); // Отверстия во всплесках
-    float wc_stains = perlin(st * 2.);
+    float wc_stains = perlin(st2 * 2.) * 1.5;
     color2 = color2 * wc_stains;
 
+    float l = 0.3 * length(vec2(perlin(st2 - 1.0 + seed * seed), perlin(st2 + 1.0 + seed * seed)));
+    vec3 wc_texture_mask = vec3(perlin(vec2(perlin(st * l))));
+    color2 = color2 * wc_texture_mask;
+
+    //return smoothstep(0.0, 1.0, color + color2);
     return color + color2;
 }
 
@@ -189,10 +194,10 @@ void main() {
     vec3 blob_mask = wc_blob_mask(st, vec2(0.1), .05, 2.);
     vec3 mixedColor = colored_blob(st, blob_mask, colorC, colorD);
 
-    vec3 blob_mask2 = wc_blob_mask(st, vec2(-0.04, -0.1), .25, 3.);
+    vec3 blob_mask2 = wc_blob_mask(st, vec2(-0.04, -0.3), .025, 3.);
     vec3 mixedColor2 = colored_blob(st, blob_mask2, colorA, colorB);
 
-    vec3 blob_mask3 = wc_blob_mask(st, vec2(-0.1, 0.06), 0.25, 11.);
+    vec3 blob_mask3 = wc_blob_mask(st, vec2(-0.1, 0.06), 0.0025, 142.);
     vec3 mixedColor3 = colored_blob(st, blob_mask3, colorA, colorB);
 
     vec3 blob_mask4 = wc_blob_mask(st, vec2(0.09, -0.08), 0.3, 5.);
@@ -210,10 +215,10 @@ void main() {
 
     vec4 finalMix = vec4(blobs, 1.) * vec4(bg, 1.);
 
-    float l = length(vec2(perlin(st - 1.0), perlin(st + 1.0)));
+    float l = length(vec2(perlin(st), perlin(st)));
     vec3 wc_texture_mask = vec3(perlin(vec2(perlin(st * l))));
 
-    gl_FragColor = vec4(wc_texture_mask * colorA * bg_texture_mask, 1.);
-    //gl_FragColor = finalMix;
+    gl_FragColor = smoothstep(0., 1., vec4(wc_texture_mask, 1.));
+    gl_FragColor = finalMix;
     //gl_FragColor = vec4(blobs, 1.);
 }
