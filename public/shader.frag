@@ -3,8 +3,6 @@ precision mediump float;
 #define PI 3.14159265359
 
 uniform vec2 u_resolution;
-uniform vec2 u_mouse;
-uniform float u_time;
 
 
 float plot(vec2 st, float pct){
@@ -164,16 +162,16 @@ vec3 wc_blob_mask (vec2 st, vec2 position, float size, float seed) {
 
     vec3 color2 = vec3(smoothstep(.4, 0.37, noise_val)); // Чёрные всплески   
     color2 -= vec3(smoothstep(0.4, -0.3, noise_val)); // Отверстия во всплесках
-    float wc_stains = perlin(st * 5.);
+    float wc_stains = perlin(st * 12.);
     color2 = color2 * wc_stains;
 
     return color + color2;
 }
 
 vec3 colored_blob (vec2 st, vec3 mask, vec3 color_a, vec3 color_b) {
-    vec3 coloredBlot = mask * mix(color_a, color_b, noise(st * 10.));
+    vec3 coloredBlot = mask * mix(color_a, color_b, noise(st * 20.));
 
-    vec3 wc_texture_mask = vec3(1.0 - fract(snoise(st * 100.) * snoise(st * 1000.)) * 0.12);
+    vec3 wc_texture_mask = vec3(1.0 - snoise(st * 400.) * snoise(st * 4000.) * 0.12);
 
     mask *= wc_texture_mask;
     mask = vec3(1.0) - mask;
@@ -181,22 +179,21 @@ vec3 colored_blob (vec2 st, vec3 mask, vec3 color_a, vec3 color_b) {
     return coloredBlot + mask;
 }
 
-
 void main() {
-    vec2 st = gl_FragCoord.xy / u_resolution.xy - 0.14;
+    vec2 st = gl_FragCoord.xy / u_resolution.xy - 0.5;
     st.x *= u_resolution.x / u_resolution.y;
 
-    vec3 blob_mask = wc_blob_mask(st, vec2(0.03), 0.55, 2.);
+    vec3 blob_mask = wc_blob_mask(st, vec2(0.1), 1.25, 2.);
     vec3 mixedColor = colored_blob(st, blob_mask, colorC, colorD);
 
-    vec3 blob_mask2 = wc_blob_mask(st, vec2(-0.05, 0.03), 0.55, 3.);
+    vec3 blob_mask2 = wc_blob_mask(st, vec2(0.04, 0.1), 1.25, 3.);
     vec3 mixedColor2 = colored_blob(st, blob_mask2, colorA, colorB);
 
-    vec3 blob_mask3 = wc_blob_mask(st, vec2(0.05, -0.05), 0.005, 11.);
+    vec3 blob_mask3 = wc_blob_mask(st, vec2(0.1, 0.06), 0.45, 11.);
     vec3 mixedColor3 = colored_blob(st, blob_mask3, colorA, colorB);
 
-    vec3 blob_mask4 = wc_blob_mask(st, vec2(0.0), 0.001, 5.);
-    vec3 mixedColor4 = colored_blob(st, blob_mask4, colorE, colorF);
+    vec3 blob_mask4 = wc_blob_mask(st, vec2(0.09, 0.08), 0.3, 5.);
+    vec3 mixedColor4 = colored_blob(st, blob_mask4, colorE, colorA);
 
     vec3 blobs = min(mixedColor, mixedColor2);
     blobs = min(mixedColor3, blobs);
@@ -210,6 +207,10 @@ void main() {
 
     vec4 finalMix = vec4(blobs, 1.) * vec4(bg, 1.);
 
-    gl_FragColor = vec4(blobs, 1.);
+    float l = length(vec2(perlin(st - 1.0), perlin(st + 1.0)));
+    vec3 wc_texture_mask = vec3(1.0 - perlin(vec2(perlin(st * 150. * l))));
+
+    //gl_FragColor = vec4(wc_texture_mask, 1.);
     gl_FragColor = finalMix;
+    //gl_FragColor = vec4(blobs, 1.);
 }
