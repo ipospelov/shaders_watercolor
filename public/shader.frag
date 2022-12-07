@@ -148,6 +148,13 @@ vec3 colorD = vec3(255./255., 246./255., 191./255.);
 vec3 colorE = vec3(245./255., 232./255., 199./255.);
 vec3 colorF = vec3(172./255., 112./255., 136./255.);
 
+vec3 color_1 = vec3(217./255., 173./255., 188./255.);
+vec3 color_2 = vec3(255./255., 173./255., 188./255.);
+
+vec3 color_3 = vec3(211./255., 222./255., 220./255.);
+vec3 color_4 = vec3(146./255., 169./255., 189./255.);
+
+
 vec3 wc_blob_mask (vec2 st, vec2 position, float size, float seed) {
     vec2 st2 = st - position;
 
@@ -177,9 +184,9 @@ vec3 wc_blob_mask (vec2 st, vec2 position, float size, float seed) {
 }
 
 vec3 colored_blob (vec2 st, vec3 mask, vec3 color_a, vec3 color_b) {
-    vec3 coloredBlot = mask * mix(color_a, color_b, noise(st * 20.));
+    vec3 coloredBlot = mask * mix(color_a, color_b, noise(st * 10.));
 
-    vec3 wc_texture_mask = vec3(1.0 - snoise(st * 400.) * snoise(st * 4000.) * 0.72);
+    vec3 wc_texture_mask = vec3(1.0 - snoise(st * 400.) * snoise(st * 4000.) * 0.52);
 
     mask *= wc_texture_mask;
     mask = vec3(1.0) - mask;
@@ -187,38 +194,74 @@ vec3 colored_blob (vec2 st, vec3 mask, vec3 color_a, vec3 color_b) {
     return coloredBlot + mask;
 }
 
+// vec3 mix_blobs (vec3[3] blobs) {
+//     return vec3(0.);
+// }
+
 void main() {
     vec2 st = gl_FragCoord.xy / u_resolution.xy - 0.5;
     st.x *= u_resolution.x / u_resolution.y;
 
-    vec3 blob_mask = wc_blob_mask(st, vec2(0.1), .05, 2.);
-    vec3 mixedColor = colored_blob(st, blob_mask, colorC, colorD);
+    vec3 blobs = vec3(1.);
+    for (float i = 1.; i < 11.; i += 1.) {
+        float xpos = rnd(vec2(i, i + 1.)) * 0.5 - 0.25;
+        float ypos = rnd(vec2(i - 1., i)) - 0.5;
 
-    vec3 blob_mask2 = wc_blob_mask(st, vec2(-0.04, -0.3), .025, 3.);
-    vec3 mixedColor2 = colored_blob(st, blob_mask2, colorA, colorB);
+        float size = 0.35 * rnd(vec2(i * 20.));
 
-    vec3 blob_mask3 = wc_blob_mask(st, vec2(-0.1, 0.06), 0.0025, 142.);
-    vec3 mixedColor3 = colored_blob(st, blob_mask3, colorA, colorB);
+        vec3 blob_mask_ = wc_blob_mask(st, vec2(xpos, ypos), size, i);
+        vec3 mixed_color = colored_blob(st, blob_mask_, color_1, color_2);
+        blobs = min(mixed_color, blobs);
+    }
 
-    vec3 blob_mask4 = wc_blob_mask(st, vec2(0.09, -0.08), 0.3, 5.);
-    vec3 mixedColor4 = colored_blob(st, blob_mask4, colorE, colorA);
+    for (float i = 11.; i < 21.; i += 1.) {
+        float xpos = rnd(vec2(i, i + 1.)) * 0.5 - 0.25;
+        float ypos = rnd(vec2(i - 1., i)) - 0.5;
 
-    vec3 blobs = min(mixedColor, mixedColor2);
-    blobs = min(mixedColor3, blobs);
-    blobs = min(mixedColor4, blobs);
+        float size = 0.35 * rnd(vec2(i * 20.));
+
+        vec3 blob_mask_ = wc_blob_mask(st, vec2(xpos, ypos), size, i);
+        vec3 mixed_color = colored_blob(st, blob_mask_, color_3, color_4);
+        blobs = min(mixed_color, blobs);
+    }
+
+    for (float i = 21.; i < 61.; i += 1.) {
+        float xpos = rnd(vec2(i, i + 1.)) * 0.5 - 0.25;
+        float ypos = rnd(vec2(i - 1., i)) - 0.5;
+
+        float size = 0.35 * rnd(vec2(i * 20.));
+
+        vec3 blob_mask_ = wc_blob_mask(st, vec2(xpos, ypos), size, i);
+        vec3 mixed_color = colored_blob(st, blob_mask_, colorA, colorB);
+        blobs = min(mixed_color, blobs);
+    }
+
+    // vec3 blob_mask = wc_blob_mask(st, vec2(0.1), .05, 2.);
+    // vec3 mixedColor = colored_blob(st, blob_mask, colorC, colorD);
+
+    // vec3 blob_mask2 = wc_blob_mask(st, vec2(-0.04, -0.1), .025, 3.);
+    // vec3 mixedColor2 = colored_blob(st, blob_mask2, colorA, colorB);
+
+    // vec3 blob_mask3 = wc_blob_mask(st, vec2(-0.1, 0.06), 0.0025, 142.);
+    // vec3 mixedColor3 = colored_blob(st, blob_mask3, colorA, colorB);
+
+    // vec3 blob_mask4 = wc_blob_mask(st, vec2(0.09, -0.08), 0.3, 5.);
+    // vec3 mixedColor4 = colored_blob(st, blob_mask4, colorE, colorA);
+
+    // blobs = min(mixedColor, mixedColor2);
+    // blobs = min(mixedColor, blobs);
+    // blobs = min(mixedColor2, blobs);
+    // blobs = min(mixedColor3, blobs);
+    // blobs = min(mixedColor4, blobs);
 
     vec3 bg_texture_mask = vec3(1.0 - perlin(st * 1000.));
     bg_texture_mask *= noise(st * 2012.);
-    bg_texture_mask /= 2.5;
     bg_texture_mask = vec3(1.0) - bg_texture_mask;
     vec3 bg = bgColor * bg_texture_mask;
 
     vec4 finalMix = vec4(blobs, 1.) * vec4(bg, 1.);
 
-    float l = length(vec2(perlin(st), perlin(st)));
-    vec3 wc_texture_mask = vec3(perlin(vec2(perlin(st * l))));
-
-    gl_FragColor = smoothstep(0., 1., vec4(wc_texture_mask, 1.));
+    gl_FragColor = vec4(bg, 1.);
     gl_FragColor = finalMix;
     //gl_FragColor = vec4(blobs, 1.);
 }
