@@ -154,6 +154,9 @@ vec3 color_2 = vec3(255./255., 173./255., 188./255.);
 vec3 color_3 = vec3(211./255., 222./255., 220./255.);
 vec3 color_4 = vec3(146./255., 169./255., 189./255.);
 
+vec3 color_5 = vec3(135./255., 76./255., 98./255.);
+vec3 color_6 = vec3(195./255., 123./255., 127./255.);
+
 
 vec3 wc_blob_mask (vec2 st, vec2 position, float size, float seed) {
     vec2 st2 = st - position;
@@ -186,17 +189,13 @@ vec3 wc_blob_mask (vec2 st, vec2 position, float size, float seed) {
 vec3 colored_blob (vec2 st, vec3 mask, vec3 color_a, vec3 color_b) {
     vec3 coloredBlot = mask * mix(color_a, color_b, noise(st * 10.));
 
-    vec3 wc_texture_mask = vec3(1.0 - snoise(st * 400.) * snoise(st * 4000.) * 0.52);
+    vec3 wc_texture_mask = vec3(1.0 - snoise(st * 400.) * snoise(st * 4000.) * 0.72);
 
     mask *= wc_texture_mask;
     mask = vec3(1.0) - mask;
 
     return coloredBlot + mask;
 }
-
-// vec3 mix_blobs (vec3[3] blobs) {
-//     return vec3(0.);
-// }
 
 void main() {
     vec2 st = gl_FragCoord.xy / u_resolution.xy - 0.5;
@@ -214,7 +213,7 @@ void main() {
         blobs = min(mixed_color, blobs);
     }
 
-    for (float i = 11.; i < 21.; i += 1.) {
+    for (float i = 11.; i < 31.; i += 1.) {
         float xpos = rnd(vec2(i, i + 1.)) * 0.5 - 0.25;
         float ypos = rnd(vec2(i - 1., i)) - 0.5;
 
@@ -225,7 +224,7 @@ void main() {
         blobs = min(mixed_color, blobs);
     }
 
-    for (float i = 21.; i < 61.; i += 1.) {
+    for (float i = 31.; i < 71.; i += 1.) {
         float xpos = rnd(vec2(i, i + 1.)) * 0.5 - 0.25;
         float ypos = rnd(vec2(i - 1., i)) - 0.5;
 
@@ -233,6 +232,17 @@ void main() {
 
         vec3 blob_mask_ = wc_blob_mask(st, vec2(xpos, ypos), size, i);
         vec3 mixed_color = colored_blob(st, blob_mask_, colorA, colorB);
+        blobs = min(mixed_color, blobs);
+    }
+
+    for (float i = 71.; i < 81.; i += 1.) {
+        float xpos = rnd(vec2(i, i + 1.)) * 0.5 - 0.25;
+        float ypos = rnd(vec2(i - 1., i)) - 0.5;
+
+        float size = 1.65 * rnd(vec2(i * 20.));
+
+        vec3 blob_mask_ = wc_blob_mask(st, vec2(xpos, ypos), size, i);
+        vec3 mixed_color = colored_blob(st, blob_mask_, color_6, color_6);
         blobs = min(mixed_color, blobs);
     }
 
