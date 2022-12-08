@@ -2,7 +2,7 @@ let theShader;
 
 var buffer;
 var myCanvas;
-var xBufferSize = 3000;
+var xBufferSize = 2000;
 var ratio = 1.25;
 var yBufferSize = xBufferSize * ratio;
 var frameWidth = 100;
@@ -68,6 +68,6 @@ function windowResized() {
 
 function keyTyped() {
   if (key === 's') {
-      save(buffer, 'crisitiva.png');
+      save(buffer, '1.png');
   }
 };
