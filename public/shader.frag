@@ -192,19 +192,29 @@ vec3 wc_blob_mask (vec2 st, vec2 position, float size, float r_multiplier, float
     return color + color2;
 }
 
-float plot(vec2 st, vec2 st2, vec2 st3) {
-    st2 += noise(st * 2.) * distance(st, st2);
-    //st3 += noise(st * 10.) * distance(st, st3);
+float perpendicular(vec2 st, vec2 p1, vec2 p2, vec2 pp) {
+    return - (st.x - pp.x) / (p1.y - p2.y) -  (st.y - pp.y) / (p1.x - p2.x);
+}
 
-    float diff = abs((st.x - st3.x) / (st2.x - st3.x) - (st.y - st3.y) / (st2.y - st3.y));
+float plot(vec2 st, vec2 p1, vec2 p2) {
+    float p1_diff = perpendicular(st, p1, p2, p2);
+
+    p1 += perlin(st * .1) * distance(st, p1);
+    //st3 += perlin(st * .1) * distance(st, st3);
+
+    float diff = abs((st.x - p2.x) / (p1.x - p2.x) - (st.y - p2.y) / (p1.y - p2.y));
+
+    float tier_disp = 0.03;
+    diff += map(perlin(st * 7.), 0., 1., -tier_disp, tier_disp);
+
     //return step(0., diff);
-    return diff;
+    //return diff;
+
+    return clamp(step(p1_diff, 0.) + diff, 0., 1.);
 }
 
 
-vec3 double_blob (vec2 st, vec2 position, float size, float r_multiplier, float seed) {
-    vec2 p2 = vec2(0.0, -0.2);
-    vec2 p3 = vec2(-0.1, 0.1);
+vec3 double_blob (vec2 st, vec2 p2, vec2 p3, float size, float r_multiplier, float seed) {
     vec2 st2 = st - p2;
     vec2 st3 = st - p3;
     
@@ -216,10 +226,14 @@ vec3 double_blob (vec2 st, vec2 position, float size, float r_multiplier, float 
 
     float noise_val = plot(st, p2, p3);
 
+    //return vec3(noise_val);
+
+    noise_val = min(noise_val, noise_val2);
+    noise_val = min(noise_val, noise_val3);
+
     float tier = 0.5;
     float tier_delta = 0.03;
     vec3 color = vec3(step(tier, noise_val)); // Чёрные всплески
-
 
     //return color;
     
@@ -227,7 +241,7 @@ vec3 double_blob (vec2 st, vec2 position, float size, float r_multiplier, float 
     color = vec3(1.0) - color;
 
     vec3 color2 = vec3(smoothstep(tier, tier - tier_delta, noise_val)); // Чёрные всплески   
-    color2 -= vec3(smoothstep(tier, -0.3, noise_val)); // Отверстия во всплесках
+    //color2 -= vec3(smoothstep(tier, -0.3, noise_val)); // Отверстия во всплесках
     float wc_stains = perlin(st * 2.) * 1.5;
     color2 = color2 * wc_stains;
 
@@ -263,7 +277,11 @@ void main() {
     vec3 blob_mask3 = wc_blob_mask(st, vec2(-0.1, 0.1), .15, r_multiplier, 1.1);
     vec3 mixedColor3 = colored_blob(st, blob_mask3, color_7, color_8);
 
-    vec3 d_blob_mask = double_blob(st, vec2(0.0, -0.1), .25, r_multiplier, 3.);
+
+    vec2 p2 = vec2(0.0, -0.2);
+    vec2 p3 = vec2(-0.1, 0.1);
+
+    vec3 d_blob_mask = double_blob(st, p2, p3, .25, r_multiplier, 3.);
     vec3 d_mixed_color = colored_blob(st, d_blob_mask, color_7, color_8);
 
 
@@ -277,8 +295,8 @@ void main() {
     bg_texture_mask = vec3(1.0) - bg_texture_mask;
     vec3 bg = bgColor * bg_texture_mask;
 
-    vec4 finalMix = vec4(blobs, 1.) * vec4(bg, 1.);
+    vec4 finalMix = vec4(d_mixed_color, 1.) * vec4(bg, 1.);
 
     gl_FragColor = finalMix;
-    //gl_FragColor = vec4(d_mixed_color, 1.);
+    //gl_FragColor = vec4(d_blob_mask, 1.);
 }
