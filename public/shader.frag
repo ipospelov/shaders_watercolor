@@ -197,20 +197,28 @@ float perpendicular(vec2 st, vec2 p1, vec2 p2, vec2 pp) {
 }
 
 float plot(vec2 st, vec2 p1, vec2 p2) {
-    float p1_diff = perpendicular(st, p1, p2, p2);
+    float p2_diff, p1_diff;
+    if (sign(p1.x - p2.x) * sign(p1.y - p2.y) >= 0.) {
+        p2_diff = perpendicular(st, p1, p2, p1);
+        p1_diff = perpendicular(st, p1, p2, p2);
+    } else {
+        p2_diff = perpendicular(st, p1, p2, p2);
+        p1_diff = perpendicular(st, p1, p2, p1);
+    }
 
-    p1 += perlin(st * .1) * distance(st, p1);
-    //st3 += perlin(st * .1) * distance(st, st3);
+    p1 += perlin(p2 * 10.1) * distance(st, p1);
+    p2 += perlin(p1 * 15.1);
 
     float diff = abs((st.x - p2.x) / (p1.x - p2.x) - (st.y - p2.y) / (p1.y - p2.y));
+    diff *= 6.;
 
     float tier_disp = 0.03;
     diff += map(perlin(st * 7.), 0., 1., -tier_disp, tier_disp);
 
-    //return step(0., diff);
-    //return diff;
+    return diff;
 
-    return clamp(step(p1_diff, 0.) + diff, 0., 1.);
+    return clamp(max(step(-p1_diff, 0.), step(p2_diff, 0.)) + diff, 0., 1.);
+    //return clamp(step(-p1_diff, 0.) + step(p2_diff, 0.) + diff, 0., 1.);
 }
 
 
@@ -226,10 +234,10 @@ vec3 double_blob (vec2 st, vec2 p2, vec2 p3, float size, float r_multiplier, flo
 
     float noise_val = plot(st, p2, p3);
 
-    //return vec3(noise_val);
-
     noise_val = min(noise_val, noise_val2);
     noise_val = min(noise_val, noise_val3);
+
+    //return vec3(noise_val);
 
     float tier = 0.5;
     float tier_delta = 0.03;
@@ -269,7 +277,7 @@ void main() {
 
     vec3 blobs = vec3(1.);
 
-    float r_multiplier = 0.9;
+    float r_multiplier = 0.7;
 
     vec3 blob_mask2 = wc_blob_mask(st, vec2(0.0, -0.1), .25, r_multiplier, 3.);
     vec3 mixedColor2 = colored_blob(st, blob_mask2, color_7, color_8);
@@ -278,24 +286,37 @@ void main() {
     vec3 mixedColor3 = colored_blob(st, blob_mask3, color_7, color_8);
 
 
-    vec2 p2 = vec2(0.0, -0.2);
-    vec2 p3 = vec2(-0.1, 0.1);
+    vec2 p2 = vec2(0.0, 0.1);
+    vec2 p3 = vec2(-0.1, -0.3);
 
     vec3 d_blob_mask = double_blob(st, p2, p3, .25, r_multiplier, 3.);
     vec3 d_mixed_color = colored_blob(st, d_blob_mask, color_7, color_8);
 
-
-    blobs = min(mixedColor2, blobs);
-    blobs = min(mixedColor3, blobs);
+    // blobs = min(mixedColor2, blobs);
+    // blobs = min(mixedColor3, blobs);
     blobs = min(d_mixed_color, blobs);
-    
+
+    // for (float i = 1.; i < 2.; i += 1.) {
+    //      float xpos = rnd(vec2(i, i * 100.)) * 0.4 - 0.2;
+    //      float ypos = rnd(vec2(i * 120., i + 1.)) * 0.6 - 0.3;
+
+    //     float xpos2 = xpos + map(rnd(vec2(i / 21.)), 0., 1., -0.4, 0.4);
+    //     float ypos2 = ypos + map(rnd(vec2(i * 21.)), 0., 1., -0.4, 0.4);
+
+    //      float size = 0.25;
+    //      float r_multiplier = 0.8;
+
+    //      vec3 blob_mask_ = double_blob(st, vec2(xpos, ypos), vec2(xpos2, ypos2), size, r_multiplier, i);
+    //      vec3 mixed_color = colored_blob(st, blob_mask_, color_7, color_8);
+    //      blobs = min(mixed_color, blobs);
+    //  }
 
     vec3 bg_texture_mask = vec3(1.0 - perlin(st * 1000.));
     bg_texture_mask *= noise(st * 2012.);
     bg_texture_mask = vec3(1.0) - bg_texture_mask;
     vec3 bg = bgColor * bg_texture_mask;
 
-    vec4 finalMix = vec4(d_mixed_color, 1.) * vec4(bg, 1.);
+    vec4 finalMix = vec4(blobs, 1.) * vec4(bg, 1.);
 
     gl_FragColor = finalMix;
     //gl_FragColor = vec4(d_blob_mask, 1.);
