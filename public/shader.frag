@@ -165,6 +165,16 @@ vec3 color_7 = vec3(73./255., 85./255., 121./255.); // dark blue
 vec3 color_8 = vec3(195./255., 123./255., 127./255.);
 
 
+vec3 color_9 = vec3(6./255., 40./255., 61./255.); // izumrud 
+vec3 color_10 = vec3(37./255., 109./255., 133./255.);
+
+vec3 color_11 = vec3(85./255., 113./255., 83./255.); // salad
+vec3 color_12 = vec3(125./255., 143./255., 105./255.);
+
+vec3 color_13 = vec3(79./255., 160./255., 149./255.); // green-blue
+vec3 color_14 = vec3(21./255., 52./255., 98./255.);
+
+
 vec3 wc_blob_mask (vec2 st, vec2 position, float size, float r_multiplier, float seed) {
     vec2 st2 = st - position;
 
@@ -196,28 +206,28 @@ float perpendicular(vec2 st, vec2 p1, vec2 p2, vec2 pp) {
     return - (st.x - pp.x) / (p1.y - p2.y) -  (st.y - pp.y) / (p1.x - p2.x);
 }
 
-float plot(vec2 st, vec2 p1, vec2 p2) {
-    float p2_diff, p1_diff;
-    if (sign(p1.x - p2.x) * sign(p1.y - p2.y) >= 0.) {
-        p2_diff = perpendicular(st, p1, p2, p1);
-        p1_diff = perpendicular(st, p1, p2, p2);
-    } else {
-        p2_diff = perpendicular(st, p1, p2, p2);
-        p1_diff = perpendicular(st, p1, p2, p1);
-    }
+float plot(vec2 st, vec2 p1, vec2 p2, float seed) {
+    // float p2_diff, p1_diff;
+    // if (sign(p1.x - p2.x) * sign(p1.y - p2.y) >= 0.) {
+    //     p2_diff = perpendicular(st, p1, p2, p1);
+    //     p1_diff = perpendicular(st, p1, p2, p2);
+    // } else {
+    //     p2_diff = perpendicular(st, p1, p2, p2);
+    //     p1_diff = perpendicular(st, p1, p2, p1);
+    // }
 
-    p1 += perlin(p2 * 10.1) * distance(st, p1);
-    p2 += perlin(p1 * 15.1);
+    p1 += perlin(p2 * 10.1) * distance(st, p2);
+    p2 += perlin(p1 * 25.1) * distance(st, p1);
 
     float diff = abs((st.x - p2.x) / (p1.x - p2.x) - (st.y - p2.y) / (p1.y - p2.y));
-    diff *= 6.;
+    //diff *= 2.;
 
-    float tier_disp = 0.03;
+    float tier_disp = 0.4;
     diff += map(perlin(st * 7.), 0., 1., -tier_disp, tier_disp);
 
     return diff;
 
-    return clamp(max(step(-p1_diff, 0.), step(p2_diff, 0.)) + diff, 0., 1.);
+    //return clamp(max(step(-p1_diff, 0.), step(p2_diff, 0.)) + diff, 0., 1.);
     //return clamp(step(-p1_diff, 0.) + step(p2_diff, 0.) + diff, 0., 1.);
 }
 
@@ -232,7 +242,7 @@ vec3 double_blob (vec2 st, vec2 p2, vec2 p3, float size, float r_multiplier, flo
     float noise_val2 = size * perlin(st2 + fract(seed / 2.124)) + r2;
     float noise_val3 = size * perlin(st3 + fract(seed / 2.124)) + r3;
 
-    float noise_val = plot(st, p2, p3);
+    float noise_val = plot(st, p2, p3, seed);
 
     noise_val = min(noise_val, noise_val2);
     noise_val = min(noise_val, noise_val3);
@@ -245,16 +255,16 @@ vec3 double_blob (vec2 st, vec2 p2, vec2 p3, float size, float r_multiplier, flo
 
     //return color;
     
-    color -= vec3(smoothstep(tier - tier_delta, tier, noise_val)) - vec3(1.0); // Отверстия во всплесках
+    //color -= vec3(smoothstep(tier - tier_delta, tier, noise_val)) - vec3(1.0); // Отверстия во всплесках
     color = vec3(1.0) - color;
 
     vec3 color2 = vec3(smoothstep(tier, tier - tier_delta, noise_val)); // Чёрные всплески   
     //color2 -= vec3(smoothstep(tier, -0.3, noise_val)); // Отверстия во всплесках
-    float wc_stains = perlin(st * 2.) * 1.5;
+    float wc_stains = perlin(st * 2.) * 1.;
     color2 = color2 * wc_stains;
 
     float l = 0.1 * length(vec2(perlin(st2 - 1.0 + seed * seed), perlin(st2 + 1.0 + seed * seed)));
-    vec3 wc_texture_mask = vec3(perlin(vec2(perlin(st * l)))) * 1.5;
+    vec3 wc_texture_mask = vec3(perlin(vec2(perlin(st * l)))) * 1.;
     color2 = color2 * wc_texture_mask;
 
     return color + color2;
@@ -288,28 +298,75 @@ void main() {
 
     vec2 p2 = vec2(0.0, 0.1);
     vec2 p3 = vec2(-0.1, -0.3);
-
     vec3 d_blob_mask = double_blob(st, p2, p3, .25, r_multiplier, 3.);
     vec3 d_mixed_color = colored_blob(st, d_blob_mask, color_7, color_8);
 
-    // blobs = min(mixedColor2, blobs);
-    // blobs = min(mixedColor3, blobs);
+    vec2 p4 = vec2(0.3, -0.1);
+    vec2 p5 = vec2(-0.2, 0.3);
+    vec3 d_blob_mask2 = double_blob(st, p4, p5, .25, r_multiplier, 3.);
+    vec3 d_mixed_color2 = colored_blob(st, d_blob_mask2, color_11, color_12);
+
+    vec2 p6 = vec2(-0.3, -0.1);
+    vec2 p7 = vec2(-0.2, -0.3);
+    vec3 d_blob_mask3 = double_blob(st, p6, p7, .25, r_multiplier, 3.);
+    vec3 d_mixed_color3 = colored_blob(st, d_blob_mask3, color_9, color_10);
+
+    blobs = min(mixedColor2, blobs);
+    blobs = min(mixedColor3, blobs);
     blobs = min(d_mixed_color, blobs);
+    blobs = min(d_mixed_color2, blobs);
+    blobs = min(d_mixed_color3, blobs);
 
-    // for (float i = 1.; i < 2.; i += 1.) {
-    //      float xpos = rnd(vec2(i, i * 100.)) * 0.4 - 0.2;
-    //      float ypos = rnd(vec2(i * 120., i + 1.)) * 0.6 - 0.3;
+    for (float i = 1.; i < 3.; i += 1.) {
+        float xpos = rnd(vec2(i, i * 100.)) * 0.4 - 0.2;
+        float ypos = rnd(vec2(i * 120., i + 1.)) * 0.6 - 0.3;
 
-    //     float xpos2 = xpos + map(rnd(vec2(i / 21.)), 0., 1., -0.4, 0.4);
-    //     float ypos2 = ypos + map(rnd(vec2(i * 21.)), 0., 1., -0.4, 0.4);
+        float xpos2 = xpos + rnd(vec2(i / 21., i + 1231.));
+        float ypos2 = ypos + rnd(vec2(i * 21., i / 243.));
 
-    //      float size = 0.25;
-    //      float r_multiplier = 0.8;
+        float size = 0.25;
+        float r_multiplier = 0.7;
 
-    //      vec3 blob_mask_ = double_blob(st, vec2(xpos, ypos), vec2(xpos2, ypos2), size, r_multiplier, i);
-    //      vec3 mixed_color = colored_blob(st, blob_mask_, color_7, color_8);
-    //      blobs = min(mixed_color, blobs);
-    //  }
+        vec3 blob_mask_ = double_blob(st, vec2(xpos, ypos), vec2(xpos2, ypos2), size, r_multiplier, i);
+        vec3 mixed_color = colored_blob(st, blob_mask_, color_12, color_14);
+        blobs = min(mixed_color, blobs);
+    }
+
+    for (float i = 21.; i < 56.; i += 1.) {
+        float xpos = rnd(vec2(i - 1., i * 100.)) * 0.7 - 0.35;
+        float ypos = rnd(vec2(i * 120., i + 1.)) * 0.9 - 0.45;
+
+        float size = 0.25;
+        float r_multiplier = 0.5;
+
+        vec3 blob_mask_ = wc_blob_mask(st, vec2(xpos, ypos), size, r_multiplier, i);
+        vec3 mixed_color = colored_blob(st, blob_mask_, color_9, color_6);
+        blobs = min(mixed_color, blobs);
+    }
+
+    for (float i = 56.; i < 80.; i += 1.) {
+        float xpos = rnd(vec2(i - 1., i * 65.)) * 0.7 - 0.35;
+        float ypos = rnd(vec2(i * 83., i + 1.)) * 0.9 - 0.45;
+
+        float size = 0.55;
+        float r_multiplier = 0.4;
+
+        vec3 blob_mask_ = wc_blob_mask(st, vec2(xpos, ypos), size, r_multiplier, i) / 2.;
+        vec3 mixed_color = colored_blob(st, blob_mask_, colorC, colorD);
+        blobs = min(mixed_color, blobs);
+    }
+
+    for (float i = 100.; i < 130.; i += 1.) {
+        float xpos = rnd(vec2(i - 1., i * 65.)) * 0.7 - 0.35;
+        float ypos = rnd(vec2(i * 83., i + 1.)) * 0.9 - 0.45;
+
+        float size = 0.55;
+        float r_multiplier = 0.2;
+
+        vec3 blob_mask_ = wc_blob_mask(st, vec2(xpos, ypos), size, r_multiplier, i);
+        vec3 mixed_color = colored_blob(st, blob_mask_, color_3, color_4);
+        blobs = min(mixed_color, blobs);
+    }
 
     vec3 bg_texture_mask = vec3(1.0 - perlin(st * 1000.));
     bg_texture_mask *= noise(st * 2012.);
