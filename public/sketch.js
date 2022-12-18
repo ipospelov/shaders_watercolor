@@ -40,6 +40,7 @@ function drawShader () {
   buffer.shader(theShader);
   
   theShader.setUniform("u_resolution", [xBufferSize, yBufferSize]);
+  theShader.setUniform("u_rand", fxrand());
 
   // rect gives us some geometry on the screen
   buffer.rect(0, 0, xBufferSize, yBufferSize);
