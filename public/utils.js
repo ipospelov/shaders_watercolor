@@ -55,7 +55,6 @@ class Line {
     }
 }
 
-
 function inCircle(minR, maxR, xCenter, yCenter, x, y) {
     var x = x - xBufferSize / 2;
     var y = y - yBufferSize / 2;
@@ -65,4 +64,8 @@ function inCircle(minR, maxR, xCenter, yCenter, x, y) {
     }
 
     return false;
+}
+
+function rgb(r, g, b) {
+    return [r / 255, g / 255, b / 255];
 }

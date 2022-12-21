@@ -35,14 +35,43 @@ function setup () {
   drawShader();
 }
 
+var color1 = rgb(192, 222, 255);
+var color2 = rgb(130, 195, 236);
+
+var color3 = rgb(13, 76, 146);
+var color4 = rgb(89, 193, 189);
+
+var color5 = rgb(230, 226, 195);
+var color6 = rgb(252, 249, 190);
+
+var color7 = rgb(255, 225, 225);
+var color8 = rgb(222, 182, 171);
+
+var color9 = rgb(134, 171, 161);
+var color10 = rgb(223, 243, 227);
+
+
 function drawShader () {
-  //shader() sets the active shader with our shader
   buffer.shader(theShader);
   
   theShader.setUniform("u_resolution", [xBufferSize, yBufferSize]);
   theShader.setUniform("u_rand", fxrand());
 
-  // rect gives us some geometry on the screen
+  theShader.setUniform("u_color_1", color1);
+  theShader.setUniform("u_color_2", color2);
+
+  theShader.setUniform("u_color_3", color3);
+  theShader.setUniform("u_color_4", color4);
+
+  theShader.setUniform("u_color_5", color5);
+  theShader.setUniform("u_color_6", color6);
+
+  theShader.setUniform("u_color_7", color7);
+  theShader.setUniform("u_color_8", color8);
+
+  theShader.setUniform("u_color_9", color9);
+  theShader.setUniform("u_color_10", color10);
+
   buffer.rect(0, 0, xBufferSize, yBufferSize);
   image(buffer, 0, 0);
 }
