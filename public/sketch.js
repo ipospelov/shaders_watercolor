@@ -55,7 +55,7 @@ function drawShader () {
   buffer.shader(theShader);
   
   theShader.setUniform("u_resolution", [xBufferSize, yBufferSize]);
-  theShader.setUniform("u_rand", fxrand());
+  theShader.setUniform("u_rand", 1.);
 
   theShader.setUniform("u_color_1", color1);
   theShader.setUniform("u_color_2", color2);
