@@ -63,19 +63,41 @@ float perlin(vec2 uv) {
     return p;
 }
 
-float hash_ (vec2 p) {
-	vec3 p3  = fract(vec3(p.xyx) * .1031);
-    p3 += dot(p3, p3.yzx + 33.33);
+float hash1(vec2 p2, float p) {
+    vec3 p3 = fract(vec3(5.3983 * p2.x, 5.4427 * p2.y, 6.9371 * p));
+    p3 += dot(p3, p3.yzx + 19.19);
     return fract((p3.x + p3.y) * p3.z);
 }
 
-float paper_noise(vec2 p) {
+float noise1(vec2 p2, float p) {
+    vec2 i = floor(p2);
+    vec2 f = fract(p2);
+	vec2 u = f * f * (3.0 - 2.0 * f);
+    return 1.0 - 2.0 * mix(mix(hash1(i + vec2(0.0, 0.0), p), 
+                               hash1(i + vec2(1.0, 0.0), p), u.x),
+                           mix(hash1(i + vec2(0.0, 1.0), p), 
+                               hash1(i + vec2(1.0, 1.0), p), u.x), u.y);
+}
+
+float fbm1(vec2 p2, float p) {
+    float value = 0.0;
+    float amplitude = .5;
+    
+    for (int i = 0; i < 2; i++) {
+        value += amplitude * noise1(p2, p);
+        p2 *= 3.;
+        amplitude *= .5;
+    }
+    return value / 2.;
+}
+
+float paper_noise(vec2 p, float seed) {
     vec4 w = vec4(floor(p), ceil(p));
     float 
-        _00 = hash_(w.xy),
-        _01 = hash_(w.xw),
-        _10 = hash_(w.zy),
-        _11 = hash_(w.zw),
+        _00 = hash1(w.xy, seed),
+        _01 = hash1(w.xw, seed),
+        _10 = hash1(w.zy, seed),
+        _11 = hash1(w.zw, seed),
     _0 = mix(_00,_01,fract(p.y)),
     _1 = mix(_10,_11,fract(p.y));
     return mix(_0,_1,fract(p.x));
@@ -84,7 +106,7 @@ float paper_noise(vec2 p) {
 float fbm (vec2 p) {
     float o = 0.;
     for (float i = 0.; i < 3.; i++) {
-        o += paper_noise(.1 * p) / 3.;
+        o += paper_noise(.1 * p, 0.) / 3.;
         o += .2 * exp(-2. * abs(sin(.02 * p.x + .01 * p.y))) / 4.;
         p *= 2.;
     }
@@ -136,7 +158,7 @@ vec3 wc_blob_mask (vec2 st, vec2 position, float size, float r_multiplier, float
 
 vec3 colored_blob (vec2 st, vec3 mask, vec3 color_a, vec3 color_b) {
     // both * 10000. and * 10. are good
-    vec3 coloredBlot = mask * mix(color_a, color_b, paper_noise(st * 10000.));
+    vec3 coloredBlot = mask * mix(color_a, color_b, paper_noise(st * 10000., 0.));
 
     mask = vec3(1.0) - mask;
 
@@ -158,6 +180,7 @@ vec3 generate_random_blobs(vec2 st, float size, float rm_min, float rm_max, floa
     return blobs;
 }
 
+
 void main() {
     vec2 st = gl_FragCoord.xy / u_resolution.xy - 0.5;
     st.x *= u_resolution.x / u_resolution.y;
@@ -172,37 +195,48 @@ void main() {
     vec3 mixedColor2 = colored_blob(st, blob_mask2, u_color_5, u_color_6);
     blobs = min(mixedColor2, blobs);
 
-    blobs = min(blobs, generate_random_blobs(st, 0.15, 0.4, 0.8, 1., u_color_1, u_color_4)); 
-    blobs = min(blobs, generate_random_blobs(st, 0.15, 0.4, 0.8, 2., u_color_5, u_color_4)); 
-    blobs = min(blobs, generate_random_blobs(st, 0.15, 0.6, 0.9, 3., u_color_7, u_color_6)); 
-
-    for (float i = 1.; i < 20.; i += 1.) {
-        float x = abs(perlin(vec2(i * 0.05 + u_rand))) * 0.8 - 0.4;
-        float y = abs(perlin(vec2(i * 0.05 - u_rand))) * 0.8 - 0.4;
-
-        float r_multiplier = map(rnd(vec2(i / u_rand)), 0., 1., 0.4, 0.8);
-
-        vec3 blob_mask = wc_blob_mask(st, vec2(x, y), 0.15, r_multiplier, i);
-        vec3 mixedColor = colored_blob(st, blob_mask, u_color_3, u_color_4);
-        blobs = min(mixedColor, blobs);
-    }
-
-    for (float i = 20.; i < 30.; i += 1.) {
-        float x = abs(perlin(vec2(i * 0.05 + u_rand))) * 0.8 - 0.4;
-        float y = abs(perlin(vec2(i * 0.05 - u_rand))) * 0.8 - 0.4;
-
-        float r_multiplier = map(rnd(vec2(i / u_rand)), 0., 1., 0.4, 0.8);
-
-        vec3 blob_mask = wc_blob_mask(st, vec2(x, y), 0.55, r_multiplier, i);
-        vec3 mixedColor = colored_blob(st, blob_mask, u_color_10, u_color_9);
-        blobs = min(mixedColor, blobs);
-    }
-
-
     vec3 paper_texture = paper(st, 0.8);
     vec3 paper_colored = mix(bg_color_light, paper_texture, vec3(0.5));
 
-    vec4 finalMix = vec4(blobs, 1.) * vec4(paper_colored, 1.);
+    // vec4 finalMix = vec4(blobs, 1.) * vec4(paper_colored, 1.);
+    // gl_FragColor = finalMix;
 
+    // vec3 splash = mix(vec3(1.0, 0., 0.), vec3(0., 1., 0.), smoothstep(0.015, 0.01, abs(fbm1(st * 3., 0.30))));
+    // vec3 splash = vec3(smoothstep(0.015, 0.01, abs(fbm1(st * 3., 0.3))));
+
+    float noise_val = abs(fbm1(st * 5., 0.3));
+    float tier_delta = 0.02;
+    float tier = 0.4 * abs(fbm1(st * 10., 0.)) + tier_delta;
+    
+
+    vec3 splash = vec3(smoothstep(tier_delta, tier, noise_val));
+    //vec3 splash = vec3(step(tier, noise_val)); // Чёрные всплески
+
+    //float lt = abs(perlin(st * .1) * 0.02 - 0.01);
+    //splash -= vec3(smoothstep(tier, tier_delta, noise_val)) - vec3(1.0); // hole
+    
+    splash = vec3(1.0) - splash;
+
+    vec3 splash2 = vec3(smoothstep(tier, tier_delta, noise_val)); // Чёрные всплески   
+    //splash2 -= vec3(smoothstep(tier, -0.3, noise_val)); // hole
+    float wc_stains = perlin(st * 1. + 1.); // + 0.4;
+
+    splash2 *= wc_stains;
+    splash *= wc_stains;
+
+    float l = 0.1 * length(vec2(perlin(st - 1.0), perlin(st + 1.0)));
+    vec3 wc_texture_mask = vec3(perlin(vec2(perlin(st * l)))) * 1.2;
+
+    splash2 *= wc_texture_mask;
+    splash *= wc_texture_mask;
+
+    //splash += splash2;
+
+    gl_FragColor = vec4(splash, 1.);
+
+    vec3 mixedColor3 = colored_blob(st, splash, u_color_9, u_color_10);
+    blobs = min(mixedColor3, blobs);
+
+    vec4 finalMix = vec4(mixedColor3, 1.) * vec4(paper_colored, 1.);
     gl_FragColor = finalMix;
 }

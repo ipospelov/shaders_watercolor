@@ -47,8 +47,8 @@ var color6 = rgb(252, 249, 190);
 var color7 = rgb(255, 225, 225);
 var color8 = rgb(222, 182, 171);
 
-var color9 = rgb(134, 171, 161);
-var color10 = rgb(223, 243, 227);
+var color9 = rgb(37, 23, 73);
+var color10 = rgb(38, 49, 89);
 
 
 function drawShader () {
