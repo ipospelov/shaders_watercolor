@@ -2,7 +2,7 @@ let theShader;
 
 var buffer;
 var myCanvas;
-var xBufferSize = 2000;
+var xBufferSize = 3000;
 var ratio = 1.25;
 var yBufferSize = xBufferSize * ratio;
 var frameWidth = 100;
@@ -35,27 +35,27 @@ function setup () {
   drawShader();
 }
 
-var color1 = rgb(192, 222, 255);
-var color2 = rgb(130, 195, 236);
+var color1 = rgb(153, 0, 0);
+var color2 = rgb(178, 80, 104);
 
-var color3 = rgb(13, 76, 146);
-var color4 = rgb(89, 193, 189);
+var color3 = rgb(255, 191, 0);
+var color4 = rgb(133, 0, 0);
 
-var color5 = rgb(230, 226, 195);
-var color6 = rgb(252, 249, 190);
+var color5 = rgb(229, 186, 115);
+var color6 = rgb(255, 230, 154);
 
-var color7 = rgb(255, 225, 225);
-var color8 = rgb(222, 182, 171);
+var color7 = rgb(254, 194, 96);
+var color8 = rgb(235, 69, 95);
 
-var color9 = rgb(37, 23, 73);
-var color10 = rgb(38, 49, 89);
+var color9 = rgb(225, 77, 42);
+var color10 = rgb(156, 44, 119);
 
 
 function drawShader () {
   buffer.shader(theShader);
   
   theShader.setUniform("u_resolution", [xBufferSize, yBufferSize]);
-  theShader.setUniform("u_rand", 1.);
+  theShader.setUniform("u_seed", fxrand());
 
   theShader.setUniform("u_color_1", color1);
   theShader.setUniform("u_color_2", color2);
