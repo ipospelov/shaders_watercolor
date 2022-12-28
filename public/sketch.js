@@ -1,9 +1,9 @@
 let theShader;
 
-var buffer;
+var buffer, buffer2;
 var myCanvas;
-var xBufferSize = 3000;
-var ratio = 1.25;
+var xBufferSize = 2000;
+var ratio = 1.38;
 var yBufferSize = xBufferSize * ratio;
 var frameWidth = 100;
 var windowEdgeSize;
@@ -30,53 +30,70 @@ function setup () {
   buffer.width = newW;
   buffer.height = newH;
 
+  buffer2 = createGraphics(xBufferSize, yBufferSize);
+  buffer2.pixelDensity(1);
+  buffer2.width = newW;
+  buffer2.height = newH;
+
   myCanvas.style('display', 'block');
+
+  noiseSeed(0);
+
+  //buffer2.background(245, 239, 230);
+  buffer2.clear();
+
+  //drawFlow(xBufferSize / 2, yBufferSize / 2);
 
   drawShader();
 }
 
-var color1 = rgb(153, 0, 0);
-var color2 = rgb(178, 80, 104);
-
-var color3 = rgb(255, 191, 0);
-var color4 = rgb(133, 0, 0);
-
-var color5 = rgb(229, 186, 115);
-var color6 = rgb(255, 230, 154);
-
-var color7 = rgb(254, 194, 96);
-var color8 = rgb(235, 69, 95);
-
-var color9 = rgb(225, 77, 42);
-var color10 = rgb(156, 44, 119);
-
-
-function drawShader () {
-  buffer.shader(theShader);
+function perlin (x, y, step, seed) {
+  // var value = 0.;
+  // var amplitude = .5;
   
-  theShader.setUniform("u_resolution", [xBufferSize, yBufferSize]);
-  theShader.setUniform("u_seed", fxrand());
+  // for (var i = 0; i < 3; i++) {
+  //     value += amplitude * noise(x * step, y * step, seed);
+  //     x *= 9.;
+  //     y *= 9.;
+  //     amplitude *= .2;
+  // }
+  // return value / 1;
 
-  theShader.setUniform("u_color_1", color1);
-  theShader.setUniform("u_color_2", color2);
+  return noise(x * step, y * step, seed);
+}
 
-  theShader.setUniform("u_color_3", color3);
-  theShader.setUniform("u_color_4", color4);
+function drawFlow (x, y) {
+  var xBegin = x, yBegin = y;
 
-  theShader.setUniform("u_color_5", color5);
-  theShader.setUniform("u_color_6", color6);
+  buffer2.noFill();
+  buffer2.strokeWeight(2);
+  buffer2.stroke(255);
 
-  theShader.setUniform("u_color_7", color7);
-  theShader.setUniform("u_color_8", color8);
+  var r = 5;
 
-  theShader.setUniform("u_color_9", color9);
-  theShader.setUniform("u_color_10", color10);
+  for (var j = 0; j < 30; j++) {
+    var seed = j / 100;
 
-  buffer.rect(0, 0, xBufferSize, yBufferSize);
-  image(buffer, 0, 0);
+    x = xBegin;
+    y = yBegin;
+    
+    buffer.beginShape();
+    for (var i = 0; i <= 200; i++) {
+      buffer2.curveVertex(x, y);
+
+      var noiseVal = perlin(x, y, 0.01, seed);
+      var ang = map(noiseVal, 0, 1, 0, Math.PI * 2);
+
+      x = x + r * Math.cos(ang);
+      y = y + r * Math.sin(ang);
+    }
+
+    buffer2.endShape();
+  }
 }
 
 function draw () {  
+  image(buffer, 0, 0);
 }
 
 function windowResized() {
@@ -92,6 +109,9 @@ function windowResized() {
   resizeCanvas(newW, newH);
   buffer.width = newW;
   buffer.height = newH;
+
+  buffer2.width = newW;
+  buffer2.height = newH;
 
   image(buffer, 0, 0);
 };

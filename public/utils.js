@@ -17,55 +17,49 @@ function normAngle(angle) {
     return angle / 180 * Math.PI;
 }
 
-function getPhi(x, y) {
-    if (x > 0 & y >= 0) {
-        return Math.atan(y / x);
-    }
-    if (x > 0 & y < 0) {
-        return Math.atan(y / x) + Math.PI * 2;
-    }
-    if (x < 0) {
-        return Math.atan(y / x) + Math.PI;
-    }
-    return Math.PI / 2;
-}
-
-function getDecart (ro, phi) {
-    return [ro * Math.cos(phi) + xBufferSize / 2, ro * Math.sin(phi) + yBufferSize / 2];
-}
-
-function getDecartShifted(ro, phi, x0, y0) {
-    return [ro * Math.cos(phi) + x0, ro * Math.sin(phi) + y0];
-}
-
-class Line {
-    constructor (phi, x0, y0) {
-        this.k = Math.tan(phi);
-        this.x0 = x0;
-        this.y0 = y0;
-    }
-
-    isGreater (x, y) {
-        var xn = x - xBufferSize / 2;
-        var yn = y - yBufferSize / 2;
-        if (yn - this.y0 > this.k * (xn - this.x0)) {
-            return 0;
-        }
-        return 1;
-    }
-}
-
-function inCircle(minR, maxR, xCenter, yCenter, x, y) {
-    var x = x - xBufferSize / 2;
-    var y = y - yBufferSize / 2;
-    var r2 = (x - xCenter) ** 2 + (y - yCenter) ** 2;
-    if (r2 < maxR ** 2 & r2 > minR ** 2) {
-        return true;
-    }
-
-    return false;
-}
-
 function rgb(r, g, b) {
     return [r / 255, g / 255, b / 255];
+}
+
+var color1 = rgb(255, 229, 241);
+var color2 = rgb(255, 234, 17);
+
+var color3 = rgb(235, 69, 95);
+var color4 = rgb(255, 191, 0);
+
+var color5 = rgb(225, 77, 42);
+var color6 = rgb(156, 44, 119);
+
+var color7 = rgb(255, 191, 0);
+var color8 = rgb(255, 234, 17);
+
+var color9 = rgb(225, 77, 42);
+var color10 = rgb(156, 44, 119);
+
+
+function drawShader () {
+  buffer.shader(theShader);
+
+  theShader.setUniform("u_tex", buffer2);
+  
+  theShader.setUniform("u_resolution", [xBufferSize, yBufferSize]);
+  theShader.setUniform("u_seed", 1.);
+
+  theShader.setUniform("u_color_1", color1);
+  theShader.setUniform("u_color_2", color2);
+
+  theShader.setUniform("u_color_3", color3);
+  theShader.setUniform("u_color_4", color4);
+
+  theShader.setUniform("u_color_5", color5);
+  theShader.setUniform("u_color_6", color6);
+
+  theShader.setUniform("u_color_7", color7);
+  theShader.setUniform("u_color_8", color8);
+
+  theShader.setUniform("u_color_9", color9);
+  theShader.setUniform("u_color_10", color10);
+
+  buffer.rect(0, 0, xBufferSize, yBufferSize);
+  image(buffer, 0, 0);
 }
