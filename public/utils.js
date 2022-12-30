@@ -21,14 +21,14 @@ function rgb(r, g, b) {
     return [r / 255, g / 255, b / 255];
 }
 
-var color1 = rgb(255, 229, 241);
-var color2 = rgb(255, 234, 17);
+var color1 = rgb(16, 161, 157);
+var color2 = rgb(85, 132, 172);
 
-var color3 = rgb(235, 69, 95);
-var color4 = rgb(255, 191, 0);
+var color3 = rgb(250, 255, 175);
+var color4 = rgb(0, 85, 85);
 
-var color5 = rgb(225, 77, 42);
-var color6 = rgb(156, 44, 119);
+var color5 = rgb(136, 164, 124);
+var color6 = rgb(255, 191, 0);
 
 var color7 = rgb(255, 191, 0);
 var color8 = rgb(255, 234, 17);
@@ -37,13 +37,30 @@ var color9 = rgb(225, 77, 42);
 var color10 = rgb(156, 44, 119);
 
 
+// var color1 = rgb(16, 161, 157);
+// var color2 = rgb(85, 132, 172);
+
+// var color3 = rgb(66, 95, 87);
+// var color4 = rgb(0, 85, 85);
+
+// var color5 = rgb(136, 164, 124);
+// var color6 = rgb(255, 191, 0);
+
+// var color7 = rgb(255, 191, 0);
+// var color8 = rgb(255, 234, 17);
+
+// var color9 = rgb(37, 109, 133);
+// var color10 = rgb(28, 49, 94);
+
+
+
 function drawShader () {
   buffer.shader(theShader);
 
   theShader.setUniform("u_tex", buffer2);
   
   theShader.setUniform("u_resolution", [xBufferSize, yBufferSize]);
-  theShader.setUniform("u_seed", 1.);
+  theShader.setUniform("u_seed", fxrand());
 
   theShader.setUniform("u_color_1", color1);
   theShader.setUniform("u_color_2", color2);
