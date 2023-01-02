@@ -21,26 +21,10 @@ function rgb(r, g, b) {
     return [r / 255, g / 255, b / 255];
 }
 
-var color1 = rgb(16, 161, 157);
-var color2 = rgb(85, 132, 172);
-
-var color3 = rgb(250, 255, 175);
-var color4 = rgb(0, 85, 85);
-
-var color5 = rgb(136, 164, 124);
-var color6 = rgb(255, 191, 0);
-
-var color7 = rgb(255, 191, 0);
-var color8 = rgb(255, 234, 17);
-
-var color9 = rgb(225, 77, 42);
-var color10 = rgb(156, 44, 119);
-
-
 // var color1 = rgb(16, 161, 157);
 // var color2 = rgb(85, 132, 172);
 
-// var color3 = rgb(66, 95, 87);
+// var color3 = rgb(250, 255, 175);
 // var color4 = rgb(0, 85, 85);
 
 // var color5 = rgb(136, 164, 124);
@@ -49,8 +33,24 @@ var color10 = rgb(156, 44, 119);
 // var color7 = rgb(255, 191, 0);
 // var color8 = rgb(255, 234, 17);
 
-// var color9 = rgb(37, 109, 133);
-// var color10 = rgb(28, 49, 94);
+// var color9 = rgb(225, 77, 42);
+// var color10 = rgb(156, 44, 119);
+
+
+var color1 = rgb(121, 2, 82);
+var color2 = rgb(255, 186, 186);
+
+var color3 = rgb(123, 40, 105);
+var color4 = rgb(130, 195, 236);
+
+var color5 = rgb(59, 24, 95);
+var color6 = rgb(192, 96, 161);
+
+var color7 = rgb(255, 191, 0);
+var color8 = rgb(59, 24, 95);
+
+var color9 = rgb(59, 24, 95);
+var color10 = rgb(20, 66, 114);
 
 
 
