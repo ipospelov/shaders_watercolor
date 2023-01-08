@@ -175,7 +175,7 @@ vec3 wc_blob_mask (vec2 st, vec2 position, float size, float r_multiplier, float
 
 vec3 colored_blob (vec2 st, vec3 mask, vec3 color_a, vec3 color_b, float seed) {
     // both * 10000. and * 10. are good
-    vec3 coloredBlot = mask * mix(color_a, color_b, paper_noise(st * 10., seed));
+    vec3 coloredBlot = mask * mix(color_a, color_b, paper_noise(st * 20., seed));
     
     mask = vec3(1.0) - mask;
     
@@ -242,16 +242,30 @@ float line_by_points(vec2 st, vec2 p0, vec2 p1) {
     return (p0.y - p1.y) * (st.x - p1.x) / (p0.x - p1.x) + p1.y;
 }
 
+float perpendicular(vec2 st, vec2 p1, vec2 p2, vec2 pp) {
+    return clamp(step(0., - (st.x - pp.x) / (p1.y - p2.y) -  (st.y - pp.y) / (p1.x - p2.x)), 0., 1.);
+}
+
 vec3 wc_curve_mask (vec2 st, float seed, vec2 p0, vec2 p1, float enthropy, float amplitude, float width) {
     vec2 p1_deviation = vec2(fbm2(st * enthropy, seed, amplitude), fbm2(st * enthropy, seed + 1.5, amplitude));
     p1_deviation *= distance(st, p1);
-    p1 += p1_deviation;
+    vec2 p1_new = p1 + p1_deviation;
 
     vec2 p0_deviation = vec2(fbm2(st * enthropy, seed + 3., amplitude), fbm2(st * enthropy, seed + 4.5, amplitude));
     p0_deviation *= distance(st, p0);
-    p0 += p0_deviation ;
+    vec2 p0_new = p0 + p0_deviation;
 
-    float y = line_by_points(st, p0, p1);
+    float p0_diff = perpendicular(st, p0, p1, p0_new);
+    float p1_diff = perpendicular(st, p0, p1, p1_new);
+
+    float sign_p0 = perpendicular(p1, p0, p1, p0_new); // 0
+    float sign_p1 = perpendicular(p0, p0, p1, p1_new); // 1
+
+    float limiter_mask0 = (1. - p0_diff) * (1. - sign_p0) + p0_diff * sign_p0;
+    float limiter_mask1 = (1. - p1_diff) * (1. - sign_p1) + p1_diff * sign_p1;
+    float limter_mask = limiter_mask0 * limiter_mask1;    
+
+    float y = line_by_points(st, p0_new, p1_new);
 
     vec3 mask = vec3(plot(st, y, width, 0.));
     
@@ -268,14 +282,14 @@ vec3 wc_curve_mask (vec2 st, float seed, vec2 p0, vec2 p1, float enthropy, float
     vec3 paper_texture = paper(st2 - 1., 1.);
     mask *= paper_texture;
 
-    return mask;
+    return mask * limter_mask;
 }
 
 vec3 generate_lines (vec2 st, float seed, vec2 p0, vec2 p1,
                     vec3 color1, vec3 color2,
                     float enthropy, float amplitude, float width) {
     vec3 blobs = vec3(1.);
-    for (float i = 0.; i < 15.; i += 1.) {
+    for (float i = 0.; i < 10.; i += 1.) {
         vec3 mixedColor = colored_blob(
             st, 
             wc_curve_mask(st, i + u_seed + seed, p0, p1, enthropy, amplitude, width),
@@ -294,91 +308,21 @@ void main() {
 
     vec3 blobs = vec3(1.);
 
-    // vec3 mask = wc_curve_mask(st, 0.1, vec2(-0.2, -0.2), vec2(0.2, 0.4), 2.1, 0.9);
-    // vec3 mixedColor = colored_blob(
-    //     st, 
-    //     mask,
-    //     u_color_1,
-    //     u_color_2,
-    //     u_seed
-    // );
-    // blobs = min(mixedColor, blobs);
+    float ent1 = .1;
+    float amp1 = 0.5;
 
-    float ent1 = 10.1;
-    float amp1 = 0.3;
-
-    vec3 lines = generate_lines(st, 0.1, vec2(0.2, 0.3), vec2(-0.2, -0.3), u_color_1, u_color_2, ent1, amp1, 0.2);
+    vec3 lines = generate_lines(st, 0.1, vec2(-0.2, 0.4), vec2(-0.2, 0.1), u_color_1, u_color_2, ent1, amp1, 0.1);
     blobs = min(lines, blobs);
 
-    vec3 lines3 = generate_lines(st, 20.1, vec2(0.2, 0.1), vec2(-0.2, -0.5), u_color_3, u_color_4, ent1, amp1, 0.2);
-    blobs = min(lines3, blobs);
-
-    vec3 lines4 = generate_lines(st, 50.2, vec2(0.2, -0.1), vec2(-0.2, -0.7), u_color_7, u_color_2, ent1, amp1, 0.2);
-    blobs = min(lines4, blobs);
-
-    vec3 lines5 = generate_lines(st, 80.1, vec2(0.2, -0.3), vec2(-0.2, -1.), u_color_9, u_color_10, ent1, amp1, 0.2);
-    blobs = min(lines5, blobs);
-
-    vec3 lines6= generate_lines(st, 180.1, vec2(0.2, -0.4), vec2(-0.8, -1.2), u_color_1, u_color_4, ent1, amp1, 0.2);
-    blobs = min(lines6, blobs);
-
-    vec3 blobs2 = vec3(1.);
-    // vec3 lines7 = generate_lines(st, 10.2, vec2(-0.3, 0.4), vec2(0.2, 0.0), u_color_3, u_color_4, .1, 0.3, 0.05);
-    // blobs2 = min(lines7, blobs2);
-
-    // vec3 lines8 = generate_lines(st, 20.2, vec2(-0.8, 0.4), vec2(-0.1, -0.1), u_color_5, u_color_2, .1, 0.3, 0.05);
-    // blobs2 = min(lines8, blobs2);
-
-    // vec3 lines9 = generate_lines(st, 30.2, vec2(0., 0.4), vec2(0.4, 0.1), u_color_1, u_color_2, .1, 0.3, 0.05);
-    // blobs2 = min(lines9, blobs2);
-
-    // vec3 lines10 = generate_lines(st, 40.2, vec2(-0.2, 0.1), vec2(0.1, -0.1), u_color_7, u_color_2, .1, 0.3, 0.05);
-    // blobs2 = min(lines10, blobs2);
-
-    // for (float i = 1.; i < 10.; i += 1.) {
-    //     float xpos = rnd(vec2(i, i * 10.) + u_seed) - 0.5;
-    //     float ypos = rnd(vec2(i * 10., i + 1.) + u_seed) * 0.7 - 0.2;
-
-    //     float size = 0.2 + map(rnd(vec2(i - 1., i + 1.) + u_seed), 0., 1., -0.1, 0.1);
-    //     float r_multiplier = 0.2 + rnd(vec2(i * i) + u_seed) * 0.6;
-
-    //     vec3 blob_mask_ = wc_blob_mask(st, vec2(xpos, ypos), size, r_multiplier, i);
-    //     vec3 mixed_color = colored_blob(st, blob_mask_, u_color_1, u_color_8, 0.1);
-    //     blobs2 = min(mixed_color, blobs2);
-    // }
-
-    // for (float i = 10.; i < 20.; i += 1.) {
-    //     float xpos = rnd(vec2(i, i * 10. + u_seed)) - 0.5;
-    //     float ypos = rnd(vec2(i * 10., i + 1. + u_seed)) * 0.7 - 0.2;
-
-    //     float size = 0.2 + map(rnd(vec2(i - 1., i + 1. + u_seed)), 0., 1., -0.1, 0.1);
-    //     float r_multiplier = 0.2 + rnd(vec2(i * i + u_seed)) * 0.7;
-
-    //     vec3 blob_mask_ = wc_blob_mask(st, vec2(xpos, ypos), size, r_multiplier, i);
-    //     vec3 mixed_color = colored_blob(st, blob_mask_, u_color_4, u_color_3, 0.1);
-    //     blobs2 = min(mixed_color, blobs2);
-    // }
-
-    // for (float i = 20.; i < 30.; i += 1.) {
-    //     float xpos = rnd(vec2(i, i * 10. + u_seed)) - 0.5;
-    //     float ypos = rnd(vec2(i * 10., i + 1. + u_seed)) * 0.7 - 0.2;
-
-    //     float size = 0.1 + map(rnd(vec2(i - 1., i + 1.) + u_seed), 0., 1., -0.1, 0.1);
-    //     float r_multiplier = 0.2 + rnd(vec2(i * i) + u_seed) * 0.1;
-
-    //     vec3 blob_mask_ = wc_blob_mask(st, vec2(xpos, ypos), size, r_multiplier, i);
-    //     vec3 mixed_color = colored_blob(st, blob_mask_, u_color_8, u_color_6, 0.1);
-    //     blobs2 = min(mixed_color, blobs2);
-    // }
-
-
-    float step_val = step(1., blobs.b);
-    blobs = step_val * blobs2 + (1. - step_val) * blobs;
+    vec3 lines2 = generate_lines(st, 1.2, vec2(-0.2, 0.1), vec2(-0.2, -0.3), u_color_3, u_color_4, ent1, amp1, 0.1);
+    blobs = min(lines2, blobs);
 
     vec3 paper_texture = paper(st, .8);
     vec3 paper_colored = mix(bg_color_light, paper_texture, vec3(0.5));
     vec4 finalMix = vec4(blobs, 1.) * vec4(paper_colored, 1.);
 
-    //gl_FragColor = vec4(vec3(blobs), 1.);
+    //vec3 mask = wc_curve_mask(st, 0., vec2(0.3, 0.), vec2(-0.3, -0.), ent1, amp1, 0.2);
+
+    //gl_FragColor = vec4(mask, 1.);
     gl_FragColor = finalMix;
 }

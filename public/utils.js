@@ -60,7 +60,7 @@ function drawShader () {
   theShader.setUniform("u_tex", buffer2);
   
   theShader.setUniform("u_resolution", [xBufferSize, yBufferSize]);
-  theShader.setUniform("u_seed", fxrand());
+  theShader.setUniform("u_seed", 1.);
 
   theShader.setUniform("u_color_1", color1);
   theShader.setUniform("u_color_2", color2);

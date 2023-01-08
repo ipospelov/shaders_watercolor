@@ -2,7 +2,7 @@ let theShader;
 
 var buffer, buffer2;
 var myCanvas;
-var xBufferSize = 2000;
+var xBufferSize = 3000;
 var ratio = 1.38;
 var yBufferSize = xBufferSize * ratio;
 var frameWidth = 100;
