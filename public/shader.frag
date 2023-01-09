@@ -121,9 +121,9 @@ float fbm1(vec2 p2, float p) {
 float fbm2(vec2 p2, float p, float amplitude) {
     float value = .0;
     
-    for (int i = 0; i < 3; i++) {
+    for (int i = 0; i < 4; i++) {
         value += amplitude * noise1(p2, p);
-        p2 *= 2.;
+        p2 *= 3.;
         amplitude *= .35;
     }
     return value / 1.;
@@ -137,8 +137,8 @@ vec2 grad (vec2 p) {
     return vec2(e-w, n-s);
 }
 
-vec3 paper (vec2 st, float intensity) {
-    return vec3(.95) + intensity * grad(st * 3000.).x;
+float paper (vec2 st, float intensity) {
+    return .95 + intensity * grad(st * 3000.).x;
 }
 
 vec3 bgColor = vec3(0.96, 0.94, 0.9);
@@ -148,29 +148,28 @@ vec3 wc_blob_mask (vec2 st, vec2 position, float size, float r_multiplier, float
     vec2 st2 = st - position;
 
     float r = length(st2) * map(r_multiplier, 0., 1., 40., 1.);
-
     float noise_val = size * perlin(st2 + fract(seed / 2.124)) + r;
 
     float tier = 0.5;
     float tier_delta = 0.1;
+
     vec3 color = vec3(step(tier, noise_val)); // Чёрные всплески
     color -= vec3(smoothstep(tier - tier_delta, tier, noise_val)) - vec3(1.0); // hole
     color = vec3(1.0) - color;
 
     vec3 color2 = vec3(smoothstep(tier, tier - tier_delta, noise_val)); // Чёрные всплески   
     color2 -= vec3(smoothstep(tier, -0.3, noise_val)); // hole
+
     float wc_stains = perlin(st * 2.); // + 0.4;
-    
     color2 = color2 * wc_stains;
     color = color * wc_stains * 1.;
 
     float l = 0.05 * length(vec2(perlin(st2 - 1.0 + seed * seed), perlin(st2 + 1.0 + seed * seed)));
     vec3 wc_texture_mask = vec3(perlin(vec2(perlin(st * l)))) * 1.;
-
     color2 = color2 * wc_texture_mask;
     color = color * wc_texture_mask * 1.5;
 
-    vec3 paper_texture = paper(st - 1., 1.);
+    vec3 paper_texture = vec3(paper(st - 1., 1.));
 
     return (color + color2) * paper_texture;
 }
@@ -227,7 +226,7 @@ vec3 wc_splash_mask (vec2 st, float seed, float scale) {
     //splash2 *= wc_texture_mask;
     splash *= wc_texture_mask;
 
-    vec3 paper_texture = paper(st - 1., 1.);
+    float paper_texture = paper(st - 1., 1.);
     splash *= paper_texture;
 
     //splash += splash2;
@@ -281,7 +280,7 @@ vec3 wc_curve_mask (vec2 st, float seed, vec2 p0, vec2 p1, float enthropy, float
 
     mask += vec3(plot(st, y, 0.01, 0.)) / 2.;
 
-    vec3 paper_texture = paper(st2 - 1., 1.);
+    float paper_texture = paper(st2 - 1., 1.);
     mask *= paper_texture;
 
     return mask;
@@ -335,7 +334,7 @@ vec3 flowfield(vec2 st, vec2 start_p, float r) {
 
 float curve_mask(vec2 st, vec2 start_p, vec2 end_p, float seed) {
     float amplitude = 0.5;
-    float enthropy = 7.1;
+    float enthropy = 2.1;
 
     vec2 start_deviation = vec2(fbm2(st * enthropy, seed, amplitude), fbm2(st * enthropy, seed * 1.5, amplitude));
     start_deviation *= distance(st, start_p);
@@ -358,6 +357,31 @@ float many_curves_mask(vec2 st, vec2 start_p, vec2 end_p, float seed) {
     return mask;
 }
 
+float wc_curve_mask(vec2 st, vec2 start_p, vec2 end_p, float width, float seed) {
+    float curve_mask = curve_mask(st, start_p, end_p, seed);
+
+    float hole_delta = 0.005;
+    float low_tier = width;
+    float high_tier = width + 0.001;
+
+    float curve = 1. - smoothstep(low_tier, high_tier, curve_mask);
+    float hole = 1. - smoothstep(high_tier - hole_delta, high_tier, curve_mask);
+
+    curve = (curve - hole / 1.5) + curve;
+
+    st += seed;
+
+    curve *= clamp(perlin(st * 1. + 1.) * 1.2, 0.5, 1.);
+
+    float l = 0.1 * length(vec2(perlin(st - 1.0), perlin(st + 1.0)));
+    curve *= clamp(perlin(vec2(perlin(st * l))) * 1.2, 0.5, 1.);
+
+    float paper_texture = paper(st - 1., 1.);
+    curve *= paper_texture;
+
+    return curve;
+}
+
 void main() {
     vec2 st = gl_FragCoord.xy / u_resolution.xy - 0.5;
     st.x *= u_resolution.x / u_resolution.y;
@@ -372,9 +396,9 @@ void main() {
 
     // vec3 mask = wc_curve_mask(st, 0.1, vec2(-0.2, 0.3), vec2(0.2, -0.2), ent1, amp1, 0.1);
 
-    float seed = 0.00001;
-    vec3 mask = vec3(curve_mask(st, vec2(0., 0.), vec2(0.2, 0.4), seed));
-    mask = vec3(1.) - smoothstep(0.002, 0.007, mask);
+    float seed = 0.00001 * u_time;
+    vec3 mask = vec3(wc_curve_mask(st, vec2(0., -0.4), vec2(0.2, 0.4), 0.007, seed));
+    
     vec3 mixedColor = colored_blob(
             st, 
             mask,
@@ -383,8 +407,8 @@ void main() {
             u_seed
         );
 
-    vec3 paper_texture = paper(st, .8);
-    vec3 paper_colored = mix(bg_color_light, paper_texture, vec3(0.5));
+    float paper_texture = paper(st, .8);
+    vec3 paper_colored = mix(bg_color_light, vec3(paper_texture), vec3(0.5));
     vec4 finalMix = vec4(mixedColor, 1.) * vec4(paper_colored, 1.);
 
     gl_FragColor = finalMix;
