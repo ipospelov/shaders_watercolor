@@ -61,6 +61,7 @@ function drawShader () {
   
   theShader.setUniform("u_resolution", [xBufferSize, yBufferSize]);
   theShader.setUniform("u_seed", 1.);
+  theShader.setUniform("u_time", millis() / 1000.0);
 
   theShader.setUniform("u_color_1", color1);
   theShader.setUniform("u_color_2", color2);

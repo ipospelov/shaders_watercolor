@@ -8,6 +8,7 @@ uniform sampler2D u_tex;
 
 uniform vec2 u_resolution;
 uniform float u_seed;
+uniform float u_time;
 
 uniform vec3 u_color_1;
 uniform vec3 u_color_2;
@@ -83,29 +84,6 @@ float noise1(vec2 p2, float p) {
                                hash1(i + vec2(1.0, 1.0), p), u.x), u.y);
 }
 
-float fbm1(vec2 p2, float p) {
-    float value = 0.;
-    float amplitude = .5;
-    
-    for (int i = 0; i < 3; i++) {
-        value += amplitude * noise1(p2, p);
-        p2 *= 4.;
-        amplitude *= .15;
-    }
-    return value / 1.;
-}
-
-float fbm2(vec2 p2, float p, float amplitude) {
-    float value = .0;
-    
-    for (int i = 0; i < 4; i++) {
-        value += amplitude * noise1(p2, p);
-        p2 *= 10.;
-        amplitude *= .15;
-    }
-    return value / 1.;
-}
-
 float paper_noise(vec2 p, float seed) {
     vec4 w = vec4(floor(p), ceil(p));
     float 
@@ -127,6 +105,30 @@ float fbm (vec2 p) {
     }
     return o;
 }
+
+float fbm1(vec2 p2, float p) {
+    float value = 0.;
+    float amplitude = .5;
+    
+    for (int i = 0; i < 3; i++) {
+        value += amplitude * noise1(p2, p);
+        p2 *= 4.;
+        amplitude *= .15;
+    }
+    return value / 1.;
+}
+
+float fbm2(vec2 p2, float p, float amplitude) {
+    float value = .0;
+    
+    for (int i = 0; i < 3; i++) {
+        value += amplitude * noise1(p2, p);
+        p2 *= 2.;
+        amplitude *= .35;
+    }
+    return value / 1.;
+}
+
 vec2 grad (vec2 p) {
     float n = fbm(p + vec2(0., 1.));
     float e = fbm(p + vec2(1., 0.));
@@ -282,7 +284,7 @@ vec3 wc_curve_mask (vec2 st, float seed, vec2 p0, vec2 p1, float enthropy, float
     vec3 paper_texture = paper(st2 - 1., 1.);
     mask *= paper_texture;
 
-    return mask * limter_mask;
+    return mask;
 }
 
 vec3 generate_lines (vec2 st, float seed, vec2 p0, vec2 p1,
@@ -302,27 +304,95 @@ vec3 generate_lines (vec2 st, float seed, vec2 p0, vec2 p1,
     return blobs;
 }
 
+float distance_to_line(vec2 line_p0, vec2 line_p1, vec2 p) {
+    float line_len = pow(length(line_p0 - line_p1), 2.);
+    float leg_len = dot(line_p0 - p, line_p0 - line_p1) / line_len;
+
+    float t = max(0., min(1., leg_len));
+    vec2 projection = line_p0 + t * (line_p1 - line_p0);
+
+    return distance(p, projection);
+}
+
+vec3 flowfield(vec2 st, vec2 start_p, float r) {
+    float result = 1.;
+    for (float i = 1.; i < 20.; i++) {
+        float ang = perlin(start_p) * 2. * PI;
+        vec2 next_p = vec2(start_p.x + r * cos(ang), start_p.y + r * sin(ang));
+
+        // float y = line_by_points(st, start_p, next_p);
+        // vec3 mask = vec3(plot(st, y, 0.01, 0.));
+
+        float mask = distance_to_line(start_p, next_p, st);
+
+        result = min(result, mask);
+
+        start_p = next_p;
+    }
+    
+    return vec3(result);
+}
+
+float curve_mask(vec2 st, vec2 start_p, vec2 end_p, float seed) {
+    float amplitude = 0.5;
+    float enthropy = 7.1;
+
+    vec2 start_deviation = vec2(fbm2(st * enthropy, seed, amplitude), fbm2(st * enthropy, seed * 1.5, amplitude));
+    start_deviation *= distance(st, start_p);
+    start_p += start_deviation;
+
+    vec2 end_deviation = vec2(fbm2(st * enthropy, seed + 1.5, amplitude), fbm2(st * enthropy, seed * 2.5, amplitude));
+    end_deviation *= distance(st, end_p);
+    end_p += end_deviation;
+
+    float mask = distance_to_line(start_p, end_p, st);
+    
+    return mask;
+}
+
+float many_curves_mask(vec2 st, vec2 start_p, vec2 end_p, float seed) {
+    float mask = 1.;
+    for (float i = 0.; i < 10.; i++) {
+        mask = min(mask, curve_mask(st, start_p, end_p, seed + i));
+    }
+    return mask;
+}
+
 void main() {
     vec2 st = gl_FragCoord.xy / u_resolution.xy - 0.5;
     st.x *= u_resolution.x / u_resolution.y;
 
     vec3 blobs = vec3(1.);
 
-    float ent1 = .1;
-    float amp1 = 0.5;
+    float ent1 = 0.1;
+    float amp1 = 0.2;
 
-    vec3 lines = generate_lines(st, 0.1, vec2(-0.2, 0.4), vec2(-0.2, 0.1), u_color_1, u_color_2, ent1, amp1, 0.1);
-    blobs = min(lines, blobs);
+    // vec3 lines = generate_lines(st, 0.1, vec2(-0.2, 0.3), vec2(0.2, -0.2), u_color_1, u_color_2, ent1, amp1, 0.1);
+    // blobs = min(lines, blobs);
 
-    vec3 lines2 = generate_lines(st, 1.2, vec2(-0.2, 0.1), vec2(-0.2, -0.3), u_color_3, u_color_4, ent1, amp1, 0.1);
-    blobs = min(lines2, blobs);
+    // vec3 mask = wc_curve_mask(st, 0.1, vec2(-0.2, 0.3), vec2(0.2, -0.2), ent1, amp1, 0.1);
+
+    float seed = 0.00001;
+    vec3 mask = vec3(curve_mask(st, vec2(0., 0.), vec2(0.2, 0.4), seed));
+    mask = vec3(1.) - smoothstep(0.002, 0.007, mask);
+    vec3 mixedColor = colored_blob(
+            st, 
+            mask,
+            u_color_1,
+            u_color_2,
+            u_seed
+        );
 
     vec3 paper_texture = paper(st, .8);
     vec3 paper_colored = mix(bg_color_light, paper_texture, vec3(0.5));
-    vec4 finalMix = vec4(blobs, 1.) * vec4(paper_colored, 1.);
+    vec4 finalMix = vec4(mixedColor, 1.) * vec4(paper_colored, 1.);
 
-    //vec3 mask = wc_curve_mask(st, 0., vec2(0.3, 0.), vec2(-0.3, -0.), ent1, amp1, 0.2);
+    gl_FragColor = finalMix;
+
+    // vec3 distances = vec3(distance_to_line(vec2(0.2, 0.), vec2(-0.2, 0.), st));
+    // distances = smoothstep(0.001, 0.001, distances);
+
+    //vec3 mask = flowfield(st, vec2(-0.3, 0.), .05);
 
     //gl_FragColor = vec4(mask, 1.);
-    gl_FragColor = finalMix;
 }

@@ -93,7 +93,8 @@ function drawFlow (x, y) {
 }
 
 function draw () {  
-  image(buffer, 0, 0);
+  drawShader();
+  //image(buffer, 0, 0);
 }
 
 function windowResized() {
