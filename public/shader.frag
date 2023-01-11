@@ -248,25 +248,15 @@ float perpendicular(vec2 st, vec2 p1, vec2 p2, vec2 pp) {
 }
 
 vec3 wc_curve_mask (vec2 st, float seed, vec2 p0, vec2 p1, float enthropy, float amplitude, float width) {
-    vec2 p1_deviation = vec2(fbm2(st * enthropy, seed, amplitude), fbm2(st * enthropy, seed + 1.5, amplitude));
+    vec2 p1_deviation = vec2(fbm2(st * enthropy, seed, amplitude), fbm2(st * enthropy, seed * 1.5, amplitude));
     p1_deviation *= distance(st, p1);
     vec2 p1_new = p1 + p1_deviation;
 
-    vec2 p0_deviation = vec2(fbm2(st * enthropy, seed + 3., amplitude), fbm2(st * enthropy, seed + 4.5, amplitude));
+    vec2 p0_deviation = vec2(fbm2(st * enthropy, seed + 1.5, amplitude), fbm2(st * enthropy, seed * 2.5, amplitude));
     p0_deviation *= distance(st, p0);
     vec2 p0_new = p0 + p0_deviation;
 
-    float p0_diff = perpendicular(st, p0, p1, p0_new);
-    float p1_diff = perpendicular(st, p0, p1, p1_new);
-
-    float sign_p0 = perpendicular(p1, p0, p1, p0_new); // 0
-    float sign_p1 = perpendicular(p0, p0, p1, p1_new); // 1
-
-    float limiter_mask0 = (1. - p0_diff) * (1. - sign_p0) + p0_diff * sign_p0;
-    float limiter_mask1 = (1. - p1_diff) * (1. - sign_p1) + p1_diff * sign_p1;
-    float limter_mask = limiter_mask0 * limiter_mask1;    
-
-    float y = line_by_points(st, p0_new, p1_new);
+    float y = line_by_points(st, p1_new, p0_new);
 
     vec3 mask = vec3(plot(st, y, width, 0.));
     
@@ -304,8 +294,9 @@ vec3 generate_lines (vec2 st, float seed, vec2 p0, vec2 p1,
 }
 
 float distance_to_line(vec2 line_p0, vec2 line_p1, vec2 p) {
-    float line_len = pow(length(line_p0 - line_p1), 2.);
-    float leg_len = dot(line_p0 - p, line_p0 - line_p1) / line_len;
+    vec2 direction = line_p0 - line_p1;
+    float line_len = pow(length(direction), 2.);
+    float leg_len = dot(line_p0 - p, direction) / line_len;
 
     float t = max(0., min(1., leg_len));
     vec2 projection = line_p0 + t * (line_p1 - line_p0);
@@ -331,18 +322,22 @@ float curve_mask(vec2 st, vec2 start_p, vec2 end_p, float amplitude, float seed)
 
 float many_curves_mask(vec2 st, vec2 start_p, vec2 end_p, float amplitude, float seed) {
     float mask = 1.;
-    for (float i = 0.; i < 15.; i++) {
+    for (float i = 0.; i < 2.; i++) {
         mask = min(mask, curve_mask(st, start_p, end_p, amplitude, seed + i));
     }
     return mask;
 }
 
 float wc_curve_mask(vec2 st, vec2 start_p, vec2 end_p, float width, float amplitude, float seed) {
-    float curve_mask = many_curves_mask(st, start_p, end_p, amplitude, seed);
+    float curve_mask = curve_mask(st, start_p, end_p, amplitude, seed);
+    curve_mask *= clamp(perlin(st * 5. + seed), 0.5, 1.);
 
     float hole_delta = 0.005;
     float low_tier = width;
     float high_tier = width + 0.001;
+
+    float higt_tier_deviation = 0.03;
+    high_tier = abs(noise1(st * 10., 1.)) * higt_tier_deviation + high_tier;
 
     float curve = 1. - smoothstep(low_tier, high_tier, curve_mask);
     float hole = 1. - smoothstep(high_tier - hole_delta, high_tier, curve_mask);
@@ -365,41 +360,10 @@ float wc_curve_mask(vec2 st, vec2 start_p, vec2 end_p, float width, float amplit
     return curve;
 }
 
-vec3 flowfield(vec2 st, vec2 start_p, float r, float seed) {
-    vec3 result = vec3(1.);
-    for (float i = 1.; i < 10.; i++) {
-        float ang = perlin(start_p * 0.5 + seed) * 2. * PI;
-        vec2 next_p = vec2(start_p.x + r * cos(ang), start_p.y + r * sin(ang));
-
-        vec3 mixedColor = colored_blob(
-            st, 
-            vec3(wc_curve_mask(st, start_p, next_p, 0.0002, 0.5, seed * i)),
-            u_color_1,
-            u_color_2,
-            seed
-        );
-
-        result = min(result, mixedColor);
-
-        start_p = next_p;
-    }
-    
-    return result;
-}
-
-// float many_wc_curve_mask(vec2 st, vec2 start_p, vec2 end_p, float width, float seed) {
-//     float mask = 0.;
-//     for (float i = 0.; i < 10.; i++) {
-//         mask = max(mask, wc_curve_mask(st, start_p, end_p, width, seed + i));
-//     }
-//     return mask;
-// }
-
 vec3 bulbs_line(vec2 st, vec2 start_p, vec2 end_p, float seed) {
     vec2 prev_p = start_p;
     vec2 direction = normalize(end_p - start_p);
     float len = length(end_p - start_p);
-    // float bulb_len = 0.2;
     float step_len = 0.05;
 
     vec3 result = vec3(1.);
@@ -436,21 +400,15 @@ vec3 circled_lines(vec2 st, vec2 start_p, vec2 end_p, float seed) {
 
     vec3 blobs = bulbs_line(st, start_p, end_p, seed);
 
-    // vec2 curr_end_p = vec2(r * cos(ang + ang_shift), r * sin(ang + ang_shift)) + center;
-    // blobs = min(blobs, bulbs_line(st, start_p, curr_end_p, seed));
-
-    // curr_end_p = vec2(r * cos(ang - ang_shift), r * sin(ang - ang_shift)) + center;
-    // blobs = min(blobs, bulbs_line(st, start_p, curr_end_p, seed));
-
-    for (float i = 0.; i < 4.; i++) {
-        float curr_ang = ang - ang_shift + i * ang_shift / 2.;
+    const float n = 2.;
+    for (float i = 0.; i < n; i++) {
+        float curr_ang = ang - ang_shift + i * 2. * ang_shift / n;
 
         vec2 curr_end_p = vec2(r * cos(curr_ang), r * sin(curr_ang)) + center;
         blobs = min(blobs, bulbs_line(st, start_p, curr_end_p, seed + i));
     }
     return blobs;
 }
-
 
 void main() {
     vec2 st = gl_FragCoord.xy / u_resolution.xy - 0.5;
@@ -460,26 +418,17 @@ void main() {
 
     vec3 blobs = vec3(1.);
 
-    // vec3 mixedColor = colored_blob(
-    //     st, 
-    //     vec3(wc_curve_mask(st, vec2(-0.32, 0.45), vec2(-0.1, 0.1), 0.001, 0.7, seed)),
-    //     u_color_1,
-    //     u_color_2,
-    //     seed
-    // );
-    // blobs = min(blobs, mixedColor);
+    vec3 mask = vec3(wc_curve_mask(st, vec2(-0.32, 0.45), vec2(0.3, -0.3), 0.004, 0.5, seed));
+    // vec3 mask2 = wc_curve_mask(st, seed, vec2(-0.32, 0.45), vec2(-0.1, 0.1), 2.1, 0.7, 0.2);
 
-    // mixedColor = colored_blob(
-    //     st, 
-    //     vec3(wc_curve_mask(st, vec2(-0.1, 0.1), vec2(.1, -.2), 0.001, 0.7, seed + 0.5)),
-    //     u_color_1,
-    //     u_color_2,
-    //     seed
-    // );
-    // blobs = min(blobs, mixedColor);
-
-    //blobs = flowfield(st, vec2(0.0), 0.2, seed);
-    blobs = circled_lines(st, vec2(-0.5, 0.7), vec2(0.5, -0.5), seed);
+    vec3 mixedColor = colored_blob(
+        st, 
+        mask,
+        u_color_1,
+        u_color_2,
+        seed
+    );
+    blobs = min(blobs, mixedColor);
 
     float paper_texture = paper(st, .8);
     vec3 paper_colored = mix(bg_color_light, vec3(paper_texture), vec3(0.5));
