@@ -177,6 +177,7 @@ vec3 wc_blob_mask (vec2 st, vec2 position, float size, float r_multiplier, float
 vec3 colored_blob (vec2 st, vec3 mask, vec3 color_a, vec3 color_b, float seed) {
     // both * 10000. and * 10. are good
     vec3 coloredBlot = mask * mix(color_a, color_b, paper_noise(st * 20., seed));
+    //vec3 coloredBlot = mask * mix(color_a, color_b, clamp(fbm1(st * 20., seed), 0., 1.));
     
     mask = vec3(1.0) - mask;
     
@@ -243,10 +244,6 @@ float line_by_points(vec2 st, vec2 p0, vec2 p1) {
     return (p0.y - p1.y) * (st.x - p1.x) / (p0.x - p1.x) + p1.y;
 }
 
-float perpendicular(vec2 st, vec2 p1, vec2 p2, vec2 pp) {
-    return clamp(step(0., - (st.x - pp.x) / (p1.y - p2.y) -  (st.y - pp.y) / (p1.x - p2.x)), 0., 1.);
-}
-
 vec3 wc_curve_mask (vec2 st, float seed, vec2 p0, vec2 p1, float enthropy, float amplitude, float width) {
     vec2 p1_deviation = vec2(fbm2(st * enthropy, seed, amplitude), fbm2(st * enthropy, seed * 1.5, amplitude));
     p1_deviation *= distance(st, p1);
@@ -304,9 +301,7 @@ float distance_to_line(vec2 line_p0, vec2 line_p1, vec2 p) {
     return distance(p, projection);
 }
 
-float curve_mask(vec2 st, vec2 start_p, vec2 end_p, float amplitude, float seed) {
-    float enthropy = 2.1;
-
+float curve_mask(vec2 st, vec2 start_p, vec2 end_p, float amplitude, float enthropy, float seed) {
     vec2 start_deviation = vec2(fbm2(st * enthropy, seed, amplitude), fbm2(st * enthropy, seed * 1.5, amplitude));
     start_deviation *= distance(st, start_p);
     start_p += start_deviation;
@@ -320,24 +315,24 @@ float curve_mask(vec2 st, vec2 start_p, vec2 end_p, float amplitude, float seed)
     return mask;
 }
 
-float many_curves_mask(vec2 st, vec2 start_p, vec2 end_p, float amplitude, float seed) {
+float many_curves_mask(vec2 st, vec2 start_p, vec2 end_p, float amplitude, float enthropy, float seed) {
     float mask = 1.;
-    for (float i = 0.; i < 2.; i++) {
-        mask = min(mask, curve_mask(st, start_p, end_p, amplitude, seed + i));
+    for (float i = 0.; i < 15.; i++) {
+        mask = min(mask, curve_mask(st, start_p, end_p, amplitude, enthropy, seed + i));
     }
     return mask;
 }
 
-float wc_curve_mask(vec2 st, vec2 start_p, vec2 end_p, float width, float amplitude, float seed) {
-    float curve_mask = curve_mask(st, start_p, end_p, amplitude, seed);
+float wc_curve_mask(vec2 st, vec2 start_p, vec2 end_p, float width, float amplitude, float enthropy, float seed) {
+    float curve_mask = curve_mask(st, start_p, end_p, amplitude, enthropy, seed);
     curve_mask *= clamp(perlin(st * 5. + seed), 0.5, 1.);
 
     float hole_delta = 0.005;
     float low_tier = width;
     float high_tier = width + 0.001;
 
-    float higt_tier_deviation = 0.03;
-    high_tier = abs(noise1(st * 10., 1.)) * higt_tier_deviation + high_tier;
+    float higt_tier_deviation = 0.01;
+    high_tier = abs(noise1(st * 10., seed)) * higt_tier_deviation + high_tier;
 
     float curve = 1. - smoothstep(low_tier, high_tier, curve_mask);
     float hole = 1. - smoothstep(high_tier - hole_delta, high_tier, curve_mask);
@@ -360,7 +355,27 @@ float wc_curve_mask(vec2 st, vec2 start_p, vec2 end_p, float width, float amplit
     return curve;
 }
 
-vec3 bulbs_line(vec2 st, vec2 start_p, vec2 end_p, float seed) {
+float many_wc_curve_mask(
+    vec2 st, vec2 start_p, vec2 end_p,
+    float width, float amplitude, float enthropy, float n,
+    float seed
+    ) {
+     float mask = 0.;
+     for (float i = 0.; i < 10.; i++) {
+        if (i >= n) {
+            break;
+        }
+        
+        mask = max(mask, wc_curve_mask(st, start_p, end_p, width, amplitude, enthropy, seed + i));
+     }
+     return mask;
+ }
+
+vec3 bulbs_line(
+    vec2 st, 
+    vec2 start_p, vec2 end_p, 
+    float seed, vec3 color1, vec3 color2
+    ) {
     vec2 prev_p = start_p;
     vec2 direction = normalize(end_p - start_p);
     float len = length(end_p - start_p);
@@ -368,18 +383,18 @@ vec3 bulbs_line(vec2 st, vec2 start_p, vec2 end_p, float seed) {
 
     vec3 result = vec3(1.);
 
-    for (float i = 0.; i < 5.; i++) {
-        float curr_len = len * 0.3;
+    for (float i = 0.; i < 4.; i++) {
+        float curr_len = len * 0.5;
         len -= curr_len + step_len;
         
         vec2 next_p = prev_p + curr_len * direction;
 
         vec3 mixedColor = colored_blob(
             st, 
-            vec3(wc_curve_mask(st, prev_p, next_p, 0.0001, 0.5, seed * i)),
-            u_color_1,
-            u_color_2,
-            seed
+            vec3(many_wc_curve_mask(st, prev_p, next_p, 0.0001, 0.6, 1.1, 5., seed + i)),
+            color1,
+            color2,
+            i + seed 
         );
         result = min(result, mixedColor);
 
@@ -388,7 +403,11 @@ vec3 bulbs_line(vec2 st, vec2 start_p, vec2 end_p, float seed) {
     return result;
 }
 
-vec3 circled_lines(vec2 st, vec2 start_p, vec2 end_p, float seed) {
+vec3 circled_lines(
+    vec2 st,
+    vec2 start_p, vec2 end_p,
+    float ang_range, float n,
+    float seed) {
     vec2 direction = end_p - start_p;
     float r = length(direction) / 2.;
     vec2 center = start_p + r * normalize(direction);
@@ -396,16 +415,103 @@ vec3 circled_lines(vec2 st, vec2 start_p, vec2 end_p, float seed) {
     vec2 end_p_norm = end_p - center;
     float ang = atan(end_p_norm.y, end_p_norm.x);
 
-    float ang_shift = PI / 6.;
+    vec3 blobs = vec3(1.);
 
-    vec3 blobs = bulbs_line(st, start_p, end_p, seed);
+    float ang_shift = ang_range / max(n - 1., 1.);
+    for (float i = 0.; i < 10.; i++) {
+        if (i >= n) {
+            break;
+        }
 
-    const float n = 2.;
-    for (float i = 0.; i < n; i++) {
-        float curr_ang = ang - ang_shift + i * 2. * ang_shift / n;
+        float curr_ang = ang + ang_shift * i - ang_range / 2.;
 
         vec2 curr_end_p = vec2(r * cos(curr_ang), r * sin(curr_ang)) + center;
-        blobs = min(blobs, bulbs_line(st, start_p, curr_end_p, seed + i));
+        blobs = min(blobs, bulbs_line(st, start_p, curr_end_p, seed + i, u_color_1, u_color_2));
+    }
+    return blobs;
+}
+
+vec3 simple_lines(
+    vec2 st, 
+    vec2 start_p, vec2 end_p, 
+    float seed
+    ) {
+    vec2 direction = normalize(end_p - start_p);
+    float len = length(end_p - start_p);
+
+    float shift = rnd(vec2(seed)) * 0.3 + 0.2;
+    vec2 prev_p = start_p + len * shift * direction;
+
+    float step_len = 0.05;
+
+    vec3 result = vec3(1.);
+
+    for (float i = 0.; i < 4.; i++) {
+        float curr_len = len * 0.2;
+        len -= curr_len + step_len;
+        
+        vec2 next_p = prev_p + curr_len * direction;
+
+        vec3 mixedColor = colored_blob(
+            st, 
+            vec3(wc_curve_mask(st, prev_p, next_p, 0.004, 0.2, 0.1, seed + i)),
+            u_color_5,
+            u_color_6,
+            i + seed 
+        );
+        result = min(result, mixedColor);
+
+        prev_p = next_p + step_len * direction;
+    }
+    return result;
+}
+
+vec3 simple_circled_lines(
+    vec2 st,
+    vec2 start_p, vec2 end_p,
+    float ang_range, float n,
+    float seed
+) {
+    vec2 direction = end_p - start_p;
+    float r = length(direction) / 2.;
+    vec2 center = start_p + r * normalize(direction);
+
+    vec2 end_p_norm = end_p - center;
+    float ang = atan(end_p_norm.y, end_p_norm.x);
+
+    vec3 blobs = vec3(1.);
+
+    float ang_shift = ang_range / max(n - 1., 1.);
+    for (float i = 0.; i < 10.; i++) {
+        if (i >= n) {
+            break;
+        }
+
+        float curr_ang = ang + ang_shift * i - ang_range / 2.;
+        vec2 curr_end_p = vec2(r * cos(curr_ang), r * sin(curr_ang)) + center;
+        blobs = min(blobs, simple_lines(st, start_p, curr_end_p, seed + i));
+    }
+    return blobs;
+}
+
+vec3 flower(vec2 st, vec2 center, float r, float seed) {
+    vec3 blobs = vec3(1.);
+
+    const float n = 6.;
+    float ang_shift = 2. * PI / n;
+    for (float i = 0.; i < n; i++) {
+        float curr_ang = ang_shift + i;
+
+        vec2 end_p = vec2(r * cos(curr_ang), r * sin(curr_ang)) + center;
+        vec3 mask = vec3(many_wc_curve_mask(st, center, end_p, 0.001, 0.5, 2.1, 5., seed + i));
+        vec3 mixedColor = colored_blob(
+            st, 
+            mask,
+            u_color_1,
+            u_color_2,
+            seed
+        );
+        blobs = min(blobs, mixedColor);
     }
     return blobs;
 }
@@ -418,17 +524,27 @@ void main() {
 
     vec3 blobs = vec3(1.);
 
-    vec3 mask = vec3(wc_curve_mask(st, vec2(-0.32, 0.45), vec2(0.3, -0.3), 0.004, 0.5, seed));
-    // vec3 mask2 = wc_curve_mask(st, seed, vec2(-0.32, 0.45), vec2(-0.1, 0.1), 2.1, 0.7, 0.2);
+    // vec3 mask = vec3(many_wc_curve_mask(st, vec2(-0.2, 0.25), vec2(0.0, 0.0), 0.001, 0.5, 1.1, seed));
+    // vec3 mixedColor = colored_blob(
+    //     st, 
+    //     mask,
+    //     u_color_5,
+    //     u_color_6,
+    //     seed
+    // );
+    // blobs = min(blobs, mixedColor);
+    // seed += 0.1;
 
-    vec3 mixedColor = colored_blob(
-        st, 
-        mask,
-        u_color_1,
-        u_color_2,
-        seed
-    );
-    blobs = min(blobs, mixedColor);
+    blobs = vec3(circled_lines(st, vec2(-0.31, 0.43), vec2(0.45, -0.4), PI - PI / 8., 5., seed));
+
+    seed += 0.1;
+    blobs = min(blobs, vec3(simple_circled_lines(st, vec2(-0.31, 0.43), vec2(0.45, -0.4), PI - PI / 4., 4., seed)));
+
+    seed += 0.1;
+    //blobs = min(blobs, vec3(circled_lines(st, vec2(-0.31, 0.43), vec2(0.45, -0.4), PI - PI / 4., 4., seed)));
+
+    
+
 
     float paper_texture = paper(st, .8);
     vec3 paper_colored = mix(bg_color_light, vec3(paper_texture), vec3(0.5));

@@ -40,8 +40,8 @@ function rgb(r, g, b) {
 var color1 = rgb(121, 2, 82);
 var color2 = rgb(255, 186, 186);
 
-var color3 = rgb(123, 40, 105);
-var color4 = rgb(130, 195, 236);
+var color3 = rgb(59, 24, 95);
+var color4 = rgb(20, 66, 114);
 
 var color5 = rgb(59, 24, 95);
 var color6 = rgb(192, 96, 161);
@@ -49,8 +49,8 @@ var color6 = rgb(192, 96, 161);
 var color7 = rgb(255, 191, 0);
 var color8 = rgb(59, 24, 95);
 
-var color9 = rgb(59, 24, 95);
-var color10 = rgb(20, 66, 114);
+var color9 = rgb(123, 40, 105);
+var color10 = rgb(130, 195, 236);
 
 
 
