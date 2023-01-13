@@ -9,6 +9,7 @@ uniform sampler2D u_tex;
 uniform vec2 u_resolution;
 uniform float u_seed;
 uniform float u_time;
+uniform int u_count;
 
 uniform vec3 u_color_1;
 uniform vec3 u_color_2;
@@ -24,6 +25,11 @@ uniform vec3 u_color_8;
 
 uniform vec3 u_color_9;
 uniform vec3 u_color_10;
+
+uniform float u_x0, u_y0;
+uniform float u_x1, u_y1;
+
+uniform bool u_paper;
 
 
 float map(float value, float min1, float max1, float min2, float max2) {
@@ -329,7 +335,7 @@ float wc_curve_mask(vec2 st, vec2 start_p, vec2 end_p, float width, float amplit
 
     float hole_delta = 0.005;
     float low_tier = width;
-    float high_tier = width + 0.001;
+    float high_tier = width + 0.0005;
 
     float higt_tier_deviation = 0.01;
     high_tier = abs(noise1(st * 10., seed)) * higt_tier_deviation + high_tier;
@@ -339,11 +345,11 @@ float wc_curve_mask(vec2 st, vec2 start_p, vec2 end_p, float width, float amplit
 
     curve = (curve - hole / 1.5) + curve;
 
-    st += seed;
+    //st += seed;
 
-    vec2 st2 = st + vec2(seed);
+    vec2 st2 = st + noise1(vec2(seed), seed);
 
-    curve *= clamp(perlin(st2 * 1. + seed) * 1.2, 0.5, 1.);
+    curve *= clamp(perlin(st2 * 1.) * 1.2, 0.5, 1.);
 
     float noise_scale = 0.001;
     float l = .3 * length(vec2(perlin(st2 * noise_scale - 1.0), perlin(st2 * noise_scale + 1.0)));
@@ -391,7 +397,7 @@ vec3 bulbs_line(
 
         vec3 mixedColor = colored_blob(
             st, 
-            vec3(many_wc_curve_mask(st, prev_p, next_p, 0.0001, 0.6, 1.1, 5., seed + i)),
+            vec3(many_wc_curve_mask(st, prev_p, next_p, 0.001, 0.6, 2.1, 10., seed + i)),
             color1,
             color2,
             i + seed 
@@ -426,7 +432,7 @@ vec3 circled_lines(
         float curr_ang = ang + ang_shift * i - ang_range / 2.;
 
         vec2 curr_end_p = vec2(r * cos(curr_ang), r * sin(curr_ang)) + center;
-        blobs = min(blobs, bulbs_line(st, start_p, curr_end_p, seed + i, u_color_1, u_color_2));
+        blobs = min(blobs, bulbs_line(st, start_p, curr_end_p, seed + i, u_color_7, u_color_8));
     }
     return blobs;
 }
@@ -452,11 +458,23 @@ vec3 simple_lines(
         
         vec2 next_p = prev_p + curr_len * direction;
 
+        float col_rnd = rnd(vec2(seed + i));
+        vec3 col1 = u_color_1;
+        vec3 col2 = u_color_2;
+
+        if (col_rnd < 0.33) {
+            col1 = u_color_3;
+            col2 = u_color_4;
+        } else if (col_rnd < 0.66) {
+            col1 = u_color_9;
+            col2 = u_color_10;
+        }
+
         vec3 mixedColor = colored_blob(
             st, 
-            vec3(wc_curve_mask(st, prev_p, next_p, 0.004, 0.2, 0.1, seed + i)),
-            u_color_5,
-            u_color_6,
+            vec3(wc_curve_mask(st, prev_p, next_p, 0.006, 0.7, 13.1, seed + i)),
+            col1,
+            col2,
             i + seed 
         );
         result = min(result, mixedColor);
@@ -517,38 +535,39 @@ vec3 flower(vec2 st, vec2 center, float r, float seed) {
 }
 
 void main() {
-    vec2 st = gl_FragCoord.xy / u_resolution.xy - 0.5;
+    vec2 uv = gl_FragCoord.xy / u_resolution.xy;
+    uv.y = 1.0 - uv.y;
+
+    vec2 st = gl_FragCoord.xy / u_resolution.xy;
     st.x *= u_resolution.x / u_resolution.y;
 
-    float seed = 0.00001 * u_time;
+    float seed = 0.00001 * float(u_count / 2) + u_seed;
 
     vec3 blobs = vec3(1.);
 
-    // vec3 mask = vec3(many_wc_curve_mask(st, vec2(-0.2, 0.25), vec2(0.0, 0.0), 0.001, 0.5, 1.1, seed));
-    // vec3 mixedColor = colored_blob(
-    //     st, 
-    //     mask,
-    //     u_color_5,
-    //     u_color_6,
-    //     seed
-    // );
-    // blobs = min(blobs, mixedColor);
-    // seed += 0.1;
-
-    blobs = vec3(circled_lines(st, vec2(-0.31, 0.43), vec2(0.45, -0.4), PI - PI / 8., 5., seed));
-
-    seed += 0.1;
-    blobs = min(blobs, vec3(simple_circled_lines(st, vec2(-0.31, 0.43), vec2(0.45, -0.4), PI - PI / 4., 4., seed)));
-
-    seed += 0.1;
-    //blobs = min(blobs, vec3(circled_lines(st, vec2(-0.31, 0.43), vec2(0.45, -0.4), PI - PI / 4., 4., seed)));
-
-    
+    vec3 mask = vec3(wc_curve_mask(st, vec2(u_x0, u_y0), vec2(u_x1, u_y1), 0.003, 0.7, 13.1, seed));
+    //vec3 mask = vec3(wc_curve_mask(st, vec2(0.1, 0.8), vec2(0.65, 0.1), 0.004, 0.5, 3.1, seed));
+    vec3 mixedColor = colored_blob(
+        st, 
+        mask,
+        u_color_1,
+        u_color_2,
+        seed
+    );
+    blobs = min(blobs, mixedColor);
 
 
     float paper_texture = paper(st, .8);
     vec3 paper_colored = mix(bg_color_light, vec3(paper_texture), vec3(0.5));
-    vec4 finalMix = vec4(blobs, 1.) * vec4(paper_colored, 1.);
+    vec4 finalMix = vec4(blobs, 1.); // * vec4(paper_colored, 1.);
+
+    if (u_count != 0) {
+        finalMix = min(texture2D(u_tex, uv), finalMix);
+    }
+
+    if (u_paper) {
+        finalMix = finalMix * vec4(paper_colored, 1.);
+    }
 
     gl_FragColor = finalMix;
 }
