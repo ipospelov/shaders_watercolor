@@ -1,4 +1,4 @@
-let theShader;
+let theShader, curveShader;
 
 var buffer, buffer2;
 var myCanvas;
@@ -6,8 +6,11 @@ var xBufferSize = 2000;
 var ratio = 1.38;
 var yBufferSize = xBufferSize * ratio;
 
+var noise1;
+
 function preload () {
-  theShader = loadShader('shader.vert', 'shader.frag');
+  theShader = loadShader('shaders/shader.vert', 'shaders/blob.frag');
+  curveShader = loadShader('shaders/shader.vert', 'shaders/curve.frag');
 }
 
 function setup () {
@@ -28,48 +31,31 @@ function setup () {
   buffer.width = newW;
   buffer.height = newH;
 
-  buffer2 = createGraphics(xBufferSize, yBufferSize);
-  buffer2.pixelDensity(1);
-  buffer2.width = newW;
-  buffer2.height = newH;
-
   myCanvas.style('display', 'block');
+
+  noise1 = new NoiseCache(0.001, 123);
 
   noiseSeed(0);
 
-  //buffer2.background(245, 239, 230);
-  buffer2.clear();
-
-  //drawFlow(xBufferSize / 2, yBufferSize / 2);
-
   frameRate(15);
 
-  drawShader();
+  //drawShader();
+
+  drawCurve(100, yBufferSize - 100, 1900, 100);
 }
 
 function perlin (x, y, step, seed) {
-  // var value = 0.;
-  // var amplitude = .5;
-  
-  // for (var i = 0; i < 3; i++) {
-  //     value += amplitude * noise(x * step, y * step, seed);
-  //     x *= 9.;
-  //     y *= 9.;
-  //     amplitude *= .2;
-  // }
-  // return value / 1;
-
   return noise(x * step, y * step, seed);
 }
 
-var n = 1;
+var n = 5;
 var nCurr = 0;
 
 var x = 100;
 var y = 100;
 var xStart = 100;
 var yStart = 100;
-var r = 500;
+var r = 100;
 
 var isPaperDrawn = false;
 
@@ -84,37 +70,16 @@ function drawShader () {
   theShader.setUniform("u_seed", 1.);
   theShader.setUniform("u_time", millis() / 1000.0);
 
-  var col_noise = perlin(x, y, 0.01, 1.5);
+  var col_noise = noise1.get(x, y);
 
-  if (col_noise < 0.33) {
-    theShader.setUniform("u_color_1", color1);
-    theShader.setUniform("u_color_2", color2);
-  } else if (col_noise < 0.66) {
-    theShader.setUniform("u_color_1", color5);
-    theShader.setUniform("u_color_2", color6);
-  } else {
-    theShader.setUniform("u_color_1", color9);
-    theShader.setUniform("u_color_2", color10);
-  }
-
-
-  theShader.setUniform("u_color_3", color3);
-  theShader.setUniform("u_color_4", color4);
-
-  theShader.setUniform("u_color_5", color5);
-  theShader.setUniform("u_color_6", color6);
-
-  theShader.setUniform("u_color_7", color7);
-  theShader.setUniform("u_color_8", color8);
-
-  theShader.setUniform("u_color_9", color9);
-  theShader.setUniform("u_color_10", color10);
+  theShader.setUniform("u_color_1", color9);
+  theShader.setUniform("u_color_2", color10);
 
   theShader.setUniform("u_tex", buffer);
 
   theShader.setUniform("u_count", frameCount);
 
-  if (y >= yBufferSize) {
+  if (yStart >= yBufferSize) {
     theShader.setUniform("u_paper", true);
     isPaperDrawn = true;
   } else {
@@ -122,7 +87,9 @@ function drawShader () {
   }
 
 
-  var noiseVal = perlin(x, y, 0.001, 0);
+
+  var noiseVal = perlin(x, y, 0.001, 2);
+  
   var ang = map(noiseVal, 0, 1, 0, Math.PI * 2);
 
   var xNext = x + r * Math.cos(ang);
@@ -147,7 +114,7 @@ function drawShader () {
 
   if (xStart >= xBufferSize) {
     xStart = 100;
-    yStart += 100;
+    yStart += 120;
 
     x = xStart;
     y = yStart;
@@ -157,9 +124,35 @@ function drawShader () {
   image(buffer, 0, 0);
 }
 
-function draw () {  
-  drawShader();
+function drawCurve (x0, y0, x1, y1) {
+  buffer.shader(curveShader);
+
+  curveShader.setUniform("u_resolution", [xBufferSize, yBufferSize]);
+  curveShader.setUniform("u_seed", 0.8);
+  curveShader.setUniform("u_time", millis() / 1000.0);
+  curveShader.setUniform("u_tex", buffer);
+  curveShader.setUniform("u_count", frameCount);
+
+  curveShader.setUniform("u_color_1", color1);
+  curveShader.setUniform("u_color_2", color2);
+
+  curveShader.setUniform("u_width", 0.005);
+  curveShader.setUniform("u_amplitude", 0.2);
+  curveShader.setUniform("u_frequency", 15);
+
+  curveShader.setUniform("u_p0", [x0 / xBufferSize, y0 / yBufferSize]);
+  curveShader.setUniform("u_p1", [x1 / xBufferSize, y1 / yBufferSize]);
+
+  buffer.rect(0, 0, xBufferSize, yBufferSize);
   image(buffer, 0, 0);
+}
+
+function draw () {  
+  //drawShader();
+
+  // var noise = perlin(1, 1, 0.01, frameCount * 0.01);
+  //drawCurve(100, yBufferSize - 100, 1900, 100);
+  //image(buffer, 0, 0);
 }
 
 function windowResized() {
@@ -175,9 +168,6 @@ function windowResized() {
   resizeCanvas(newW, newH);
   buffer.width = newW;
   buffer.height = newH;
-
-  buffer2.width = newW;
-  buffer2.height = newH;
 
   image(buffer, 0, 0);
 };
