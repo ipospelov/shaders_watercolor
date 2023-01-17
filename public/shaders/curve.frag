@@ -19,8 +19,7 @@ uniform float u_width;
 uniform float u_amplitude;
 uniform float u_frequency;
 
-float inter(float a, float b, float x)
-{
+float inter(float a, float b, float x) {
     //return a*(1.0-x) + b*x; // Linear interpolation
 
     float f = (1.0 - cos(x * 3.1415927)) * 0.5; // Cosine interpolation
@@ -122,12 +121,12 @@ float distance_to_line(vec2 line_p0, vec2 line_p1, vec2 p) {
     return distance(p, projection);
 }
 
-float curve_mask(vec2 st, vec2 start_p, vec2 end_p, float seed) {
-    vec2 start_deviation = vec2(fbm(st * u_frequency, seed), fbm(st * u_frequency, seed * 1.5));
+float curve_mask(vec2 st, vec2 start_p, vec2 end_p) {
+    vec2 start_deviation = vec2(fbm(st * u_frequency, u_seed), fbm(st * u_frequency, u_seed * 1.5));
     start_deviation *= distance(st, start_p);
     start_p += start_deviation;
 
-    vec2 end_deviation = vec2(fbm(st * u_frequency, seed + 1.5), fbm(st * u_frequency, seed * 2.5));
+    vec2 end_deviation = vec2(fbm(st * u_frequency, u_seed + 1.5), fbm(st * u_frequency, u_seed * 2.5));
     end_deviation *= distance(st, end_p);
     end_p += end_deviation;
 
@@ -136,38 +135,38 @@ float curve_mask(vec2 st, vec2 start_p, vec2 end_p, float seed) {
     return mask;
 }
 
-float wc_curve_mask(vec2 st, vec2 start_p, vec2 end_p, float seed) {
-    float curve_mask = curve_mask(st, start_p, end_p, seed);
-    curve_mask *= clamp(perlin(st * 5. + seed), 0.5, 1.);
+float wc_curve_mask(vec2 st, vec2 start_p, vec2 end_p) {
+    float curve_mask = curve_mask(st, start_p, end_p);
+    curve_mask *= clamp(perlin(st * 5. + u_seed), 0.5, 1.);
 
-    float hole_delta = 0.005;
+    float hole_delta = 0.003;
     float low_tier = u_width;
     float high_tier = u_width + 0.0005;
 
     float higt_tier_deviation = 0.01;
-    high_tier = abs(noise(st * 10., seed)) * higt_tier_deviation + high_tier;
+    high_tier = abs(noise(st * 10., u_seed)) * higt_tier_deviation + high_tier;
 
     float curve = 1. - smoothstep(low_tier, high_tier, curve_mask);
     float hole = 1. - smoothstep(high_tier - hole_delta, high_tier, curve_mask);
 
-    curve = (curve - hole / 1.5) + curve;
+    curve = (curve - hole) + curve;
 
-    vec2 st2 = st + noise(vec2(seed), seed);
+    vec2 st2 = st + noise(vec2(u_seed), u_seed);
 
-    curve *= clamp(perlin(st2 * 1.) * 1., 0.5, 1.);
+    curve *= clamp(perlin(st2 * 1.) * 1., 0.5, 1.) * 1.2;
 
     float noise_scale = 0.001;
     float l = .3 * length(vec2(perlin(st2 * noise_scale - 1.0), perlin(st2 * noise_scale + 1.0)));
-    curve *= clamp(perlin(vec2(perlin(st2 * l))) * 1.2, 0.5, 1.);
+    curve *= clamp(perlin(vec2(perlin(st2 * l))) * 1.2, 0.5, 1.) * 1.2;
 
-    float paper_texture = paper(st2 * 1., .5);
+    float paper_texture = paper(st2 * 1., .8);
     curve *= paper_texture;
 
     return curve;
 }
 
-vec3 colorize (vec2 st, vec3 mask, vec3 color_a, vec3 color_b, float seed) {
-    vec3 colorized = mask * mix(color_a, color_b, paper_noise(st * 20., seed));
+vec3 colorize (vec2 st, vec3 mask, vec3 color_a, vec3 color_b) {
+    vec3 colorized = mask * mix(color_a, color_b, paper_noise(st * 20., u_seed));
     //vec3 coloredBlot = mask * mix(color_a, color_b, clamp(fbm1(st * 20., seed), 0., 1.));
     mask = vec3(1.0) - mask;
     return colorized + mask;
@@ -183,20 +182,19 @@ void main() {
     vec2 p0 = vec2(u_p0.x * u_resolution.x / u_resolution.y, u_p0.y);
     vec2 p1 = vec2(u_p1.x * u_resolution.x / u_resolution.y, u_p1.y);
 
-    vec3 mask = vec3(wc_curve_mask(st, p0, p1, u_seed));
+    vec3 mask = vec3(wc_curve_mask(st, p0, p1));
     vec3 colorized = colorize(
         st, 
         mask,
         u_color_1,
-        u_color_2,
-        u_seed
+        u_color_2
     );
 
     vec4 finalMix = vec4(colorized, 1.);
 
-    // if (u_count != 0) {
-    //     finalMix = min(texture2D(u_tex, uv), finalMix);
-    // }
+    if (u_count != 0) {
+        finalMix = min(texture2D(u_tex, uv), finalMix);
+    }
 
     gl_FragColor = finalMix;
 }
