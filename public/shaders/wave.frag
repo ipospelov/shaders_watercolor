@@ -137,11 +137,11 @@ vec3 curve_mask (vec2 st, vec2 p0, vec2 p1) {
     
     vec2 st2 = st + vec2(u_seed);
 
-    mask *= perlin(st * 1. + u_seed) * 1.2;
+    mask *= perlin(st * 1. + u_seed);
 
     float noise_scale = 0.001;
     float l = .3 * length(vec2(perlin(st2 * noise_scale - 1.0), perlin(st2 * noise_scale + 1.0)));
-    mask *= vec3(perlin(vec2(perlin(st2 * l)))) * 1.2;
+    mask *= vec3(perlin(vec2(perlin(st2 * l))));
 
     mask += vec3(plot(st, y, 0.01, 0.)) / 2.;
 

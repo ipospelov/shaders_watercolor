@@ -14,8 +14,7 @@ uniform int u_count;
 uniform vec3 u_color_1;
 uniform vec3 u_color_2;
 
-uniform float u_x0, u_y0;
-uniform float u_x1, u_y1;
+uniform vec2 u_p;
 
 uniform bool u_paper;
 
@@ -127,7 +126,7 @@ vec3 wc_blob_mask (vec2 st, vec2 position, float size, float r_multiplier, float
     color2 = color2 * wc_texture_mask;
     color = color * wc_texture_mask * 1.5;
 
-    vec3 paper_texture = vec3(paper(st - 1., 1.));
+    vec3 paper_texture = vec3(paper(st - 1., 1.5));
 
     return (color + color2) * paper_texture;
 }
@@ -153,7 +152,7 @@ void main() {
 
     vec3 blobs = vec3(1.);
 
-    vec3 mask = vec3(wc_blob_mask(st, vec2(0.4, 0.8), .5, 0.8, seed));
+    vec3 mask = vec3(wc_blob_mask(st, u_p, .2, 0.4, seed));
     
     vec3 mixedColor = colored_blob(
         st, 
@@ -162,20 +161,11 @@ void main() {
         u_color_2,
         seed
     );
-    blobs = min(blobs, mixedColor);
 
-    float paper_texture = paper(st, .8);
-    float blobs_avg = (blobs.x + blobs.y + blobs.z) / 3.; 
-    vec3 paper_colored = mix(bg_color_light, vec3(paper_texture), vec3(0.5));
-
-    vec4 finalMix = vec4(blobs, 1.) * vec4(paper_colored, 1.);
+    vec4 finalMix = vec4(mixedColor, 1.);
 
     if (u_count != 0) {
         finalMix = min(texture2D(u_tex, uv), finalMix);
-    }
-
-    if (u_paper) {
-        finalMix = finalMix * vec4(paper_colored, 1.);
     }
 
     gl_FragColor = finalMix;
