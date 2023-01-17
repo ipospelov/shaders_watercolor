@@ -99,6 +99,7 @@ function drawCurve (x0, y0, x1, y1) {
 
   curveShader.setUniform("u_resolution", [xBufferSize, yBufferSize]);
   curveShader.setUniform("u_seed", 0.7);
+  curveShader.setUniform("u_color_seed", fxrand());
   curveShader.setUniform("u_time", millis() / 1000.0);
   curveShader.setUniform("u_tex", buffer);
   curveShader.setUniform("u_count", frameCount);

@@ -6,6 +6,7 @@ uniform sampler2D u_tex;
 
 uniform vec2 u_resolution;
 uniform float u_seed;
+uniform float u_color_seed;
 uniform float u_time;
 uniform int u_count;
 
@@ -139,11 +140,11 @@ float wc_curve_mask(vec2 st, vec2 start_p, vec2 end_p) {
     float curve_mask = curve_mask(st, start_p, end_p);
     curve_mask *= clamp(perlin(st * 5. + u_seed), 0.5, 1.);
 
-    float hole_delta = 0.003;
+    float hole_delta = 0.002;
     float low_tier = u_width;
     float high_tier = u_width + 0.0005;
 
-    float higt_tier_deviation = 0.01;
+    float higt_tier_deviation = 0.001;
     high_tier = abs(noise(st * 10., u_seed)) * higt_tier_deviation + high_tier;
 
     float curve = 1. - smoothstep(low_tier, high_tier, curve_mask);
@@ -166,7 +167,7 @@ float wc_curve_mask(vec2 st, vec2 start_p, vec2 end_p) {
 }
 
 vec3 colorize (vec2 st, vec3 mask, vec3 color_a, vec3 color_b) {
-    vec3 colorized = mask * mix(color_a, color_b, paper_noise(st * 20., u_seed));
+    vec3 colorized = mask * mix(color_a, color_b, paper_noise(st * 20., u_color_seed));
     //vec3 coloredBlot = mask * mix(color_a, color_b, clamp(fbm1(st * 20., seed), 0., 1.));
     mask = vec3(1.0) - mask;
     return colorized + mask;

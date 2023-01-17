@@ -16,7 +16,7 @@ class RectanglePainter {
 
         let stepLen = 500 + fxRandRanged(-50, 50);
         let yMargin = 100 + fxRandRanged(-30, 30);
-        let xMargin = 100;
+        let xMargin = 50;
 
         let nextY = this.currentY + stepLen;
         drawCurve(this.currentX, this.currentY, this.currentX, nextY);
