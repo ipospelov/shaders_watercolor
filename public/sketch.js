@@ -64,25 +64,19 @@ function windowResized() {
 };
 
 function draw () {
-  if (wavePainter.draw()) {
+  // if (wavePainter.draw()) {
 
-  } else if (rectPainter.draw()) {
+  // } else if (rectPainter.draw()) {
 
-  } else if (blobsPainter.draw()) {
+  // } else if (blobsPainter.draw()) {
 
-  }
-  
-
-  // if (frameCount > 7) {
-  //   return;
   // }
 
-  // var y = 500 + frameCount * 100;
-  // drawWave(100, y, 1900, y);
+  rectPainter.draw();
 }
 
 function keyTyped() {
   if (key === 's') {
-      save(buffer, '1.png');
+      save(buffer, 'watercolor.png');
   }
 };

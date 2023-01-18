@@ -34,7 +34,10 @@ var color7 = rgb(255, 191, 0);
 var color8 = rgb(85, 132, 172);
 
 var color9 = rgb(10, 38, 71);
-var color10 = rgb(44, 116, 179);
+var color10 = rgb(85, 132, 172);
+
+// var color9 = rgb(250, 255, 175);
+// var color10 = rgb(136, 164, 124);
 
 
 var color11 = rgb(101, 136, 100);

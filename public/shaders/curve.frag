@@ -7,7 +7,6 @@ uniform sampler2D u_tex;
 uniform vec2 u_resolution;
 uniform float u_seed;
 uniform float u_color_seed;
-uniform float u_time;
 uniform int u_count;
 
 uniform vec3 u_color_1;
@@ -107,8 +106,8 @@ float grad (vec2 p) {
     return e-w;
 }
 
-float paper (vec2 st, float intensity) {
-    return 0.95 + intensity * grad(st * 3000.);
+float paper (vec2 st, float intensity, float brightness) {
+    return brightness + intensity * grad(st * 3000.);
 }
 
 float distance_to_line(vec2 line_p0, vec2 line_p1, vec2 p) {
@@ -142,9 +141,9 @@ float wc_curve_mask(vec2 st, vec2 start_p, vec2 end_p) {
 
     float hole_delta = 0.002;
     float low_tier = u_width;
-    float high_tier = u_width + 0.0003;
+    float high_tier = u_width + 0.0002;
 
-    float higt_tier_deviation = 0.00;
+    float higt_tier_deviation = 0.0005;
     high_tier = abs(noise(st * 10., u_seed)) * higt_tier_deviation + high_tier;
 
     float curve = 1. - smoothstep(low_tier, high_tier, curve_mask);
@@ -154,13 +153,18 @@ float wc_curve_mask(vec2 st, vec2 start_p, vec2 end_p) {
 
     vec2 st2 = st + noise(vec2(u_color_seed), u_color_seed);
 
-    curve *= clamp(perlin(st2 * 1.) * 1., 0.5, 1.) * 1.2;
+    float multiplier = 1.2;
+    float clamp_bound = 0.7;
 
-    float noise_scale = 0.001;
-    float l = .3 * length(vec2(perlin(st2 * noise_scale - 1.0), perlin(st2 * noise_scale + 1.0)));
-    curve *= clamp(perlin(vec2(perlin(st2 * l))) * 1.2, 0.5, 1.) * 1.2;
+    curve *= clamp(perlin(st2) * 1., clamp_bound, 1.) * multiplier;
 
-    float paper_texture = paper(st2 * 1., .8);
+    float noise_scale = 5.5;
+    float l = .01 * length(vec2(perlin(st2 * noise_scale - 1.0), perlin(st2 * noise_scale + 1.0)));
+    curve *= clamp(perlin(vec2(perlin(st2 * l))), clamp_bound, 1.) * multiplier;
+
+    //curve = smoothstep(0., 1., curve);
+
+    float paper_texture = paper(st2, .8, .95);
     curve *= paper_texture;
 
     return curve;

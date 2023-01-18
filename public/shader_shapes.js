@@ -43,7 +43,8 @@ function drawCurve (x0, y0, x1, y1, colorA, colorB) {
   
     curveShader.setUniform("u_width", 0.003);
     curveShader.setUniform("u_amplitude", 0.5);
-    curveShader.setUniform("u_frequency", 20);
+    
+    curveShader.setUniform("u_frequency", 50);
   
     curveShader.setUniform("u_p0", [x0 / xBufferSize, y0 / yBufferSize]);
     curveShader.setUniform("u_p1", [x1 / xBufferSize, y1 / yBufferSize]);

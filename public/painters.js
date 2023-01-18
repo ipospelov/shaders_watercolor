@@ -14,8 +14,8 @@ class RectanglePainter {
             return 0;
         }
 
-        let stepLen = 500 + fxRandRanged(-50, 50);
-        let yMargin = 100 + fxRandRanged(-30, 30);
+        let stepLen = 500// + fxRandRanged(-50, 50);
+        let yMargin = 100// + fxRandRanged(-30, 30);
         let xMargin = 50;
 
         let nextY = this.currentY + stepLen;
