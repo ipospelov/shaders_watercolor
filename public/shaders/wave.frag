@@ -21,6 +21,8 @@ uniform float u_frequency;
 uniform float u_fbm_frequency;
 uniform float u_fbm_amplitude;
 
+uniform bool u_overlay_blend;
+
 float inter(float a, float b, float x) {
     //return a*(1.0-x) + b*x; // Linear interpolation
 
@@ -76,8 +78,8 @@ float grad (vec2 p) {
     return e-w;
 }
 
-float paper (vec2 st, float intensity) {
-    return 0.95 + intensity * grad(st * 3000.);
+float paper (vec2 st, float intensity, float brightness) {
+    return brightness + intensity * grad(st * 3000.);
 }
 
 float perlin(vec2 uv) {
@@ -139,13 +141,13 @@ vec3 curve_mask (vec2 st, vec2 p0, vec2 p1) {
 
     mask *= perlin(st * 1. + u_seed);
 
-    float noise_scale = 0.001;
+    float noise_scale = 0.01;
     float l = .3 * length(vec2(perlin(st2 * noise_scale - 1.0), perlin(st2 * noise_scale + 1.0)));
     mask *= vec3(perlin(vec2(perlin(st2 * l))));
 
-    mask += vec3(plot(st, y, 0.01, 0.)) / 2.;
+    mask += vec3(plot(st, y, 0.005, 0.)) / 2.;
 
-    float paper_texture = paper(st2 - 1., 1.);
+    float paper_texture = paper(st2 - 1., 1., 0.95);
     mask *= paper_texture;
 
     return mask;
@@ -153,7 +155,6 @@ vec3 curve_mask (vec2 st, vec2 p0, vec2 p1) {
 
 vec3 colorize (vec2 st, vec3 mask) {
     vec3 colorized = mask * mix(u_color_1, u_color_2, paper_noise(st * 20., u_seed));
-    //vec3 coloredBlot = mask * mix(color_a, color_b, clamp(fbm1(st * 20., seed), 0., 1.));
     mask = vec3(1.0) - mask;
     return colorized + mask;
 }
@@ -177,9 +178,18 @@ void main() {
 
     vec4 finalMix = vec4(mixedColor, 1.);
 
-    if (u_count != 0) {
-        finalMix = min(texture2D(u_tex, uv), finalMix);
+    if (u_count == 1) {
+        gl_FragColor = finalMix;
+        return;
     }
 
-    gl_FragColor = finalMix;
+    if (u_overlay_blend) {
+        if (mixedColor == vec3(1., 1., 1.)) {
+            finalMix = texture2D(u_tex, uv);
+        }
+        gl_FragColor = finalMix;
+        return;
+    }
+
+    gl_FragColor = min(texture2D(u_tex, uv), finalMix);
 }

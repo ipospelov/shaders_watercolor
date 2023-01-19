@@ -197,7 +197,7 @@ void main() {
 
     vec4 finalMix = vec4(colorized, 1.);
 
-    if (u_count != 0) {
+    if (u_count != 1) {
         finalMix = min(texture2D(u_tex, uv), finalMix);
     }
 

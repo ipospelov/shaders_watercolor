@@ -2,7 +2,10 @@ precision mediump float;
 
 varying vec2 vTexCoord;
 
+uniform sampler2D u_tex;
+
 uniform vec2 u_resolution;
+uniform int u_count;
 
 uniform vec3 u_bg_color;
 
@@ -45,11 +48,20 @@ float paper (vec2 st, float intensity) {
 }
 
 void main() {
+    vec2 uv = gl_FragCoord.xy / u_resolution.xy;
+    uv.y = 1.0 - uv.y;
+
     vec2 st = gl_FragCoord.xy / u_resolution.xy;
     st.x *= u_resolution.x / u_resolution.y;
 
     float paper_texture = paper(st, .8);
     vec3 paper_colored = mix(u_bg_color, vec3(paper_texture), vec3(0.5));
 
-    gl_FragColor = vec4(paper_colored, 1.);
+    vec4 finalMix = vec4(paper_colored, 1.);
+
+    if (u_count != 1) {
+        finalMix = texture2D(u_tex, uv) * finalMix;
+    }
+
+    gl_FragColor = finalMix;
 }

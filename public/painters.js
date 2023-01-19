@@ -41,42 +41,45 @@ class RectanglePainter {
 }
 
 class WavePainter {
-    constructor (yMin, yMax, n) {
+    constructor (yMin, yMax, n, colors, overlay = false) {
         this.yMin = yMin;
         this.yMax = yMax;
 
         this.n = n;
-        this.currentN = 0;
+        this.currentN = n;
 
         this.margin = (yMax - yMin) / n;
 
         this.nEachMax = 10;
         this.nEachCurrent = 0;
+
+        this.overlay = overlay;
+        this.colors = colors;
     }
 
     getColor () {
-        return [
-            [color7, color8],
-            [color5, color6],
-            //[color3, color4],
-            [color1, color2]
-        ][(this.currentN) % 3]
+        return this.colors[(this.n - this.currentN) % this.colors.length];
     }
 
     draw () {
-        if (this.currentN >= this.n) {
+        if (this.currentN == 0) {
             return 0;
         }
 
         let y = this.yMin + this.currentN * this.margin;
 
         let xBorderMargin = -100;
-        let angleMargin = 500;
-        drawWave(xBorderMargin, y - angleMargin, xBufferSize - xBorderMargin, y + angleMargin, ...this.getColor());
+        let angleMargin = -200;
+        drawWave(
+            xBorderMargin,
+            y - angleMargin, xBufferSize - xBorderMargin, y + angleMargin,
+            ...this.getColor(),
+            this.overlay
+        );
 
         if (this.nEachCurrent >= this.nEachMax) {
             this.nEachCurrent = 0;
-            this.currentN++;
+            this.currentN--;
         } else {
             this.nEachCurrent++;
         }
@@ -116,5 +119,37 @@ class BlobsPainter {
         this.currentN++;
 
         return 1;
+    }
+}
+
+class PaperPainted {
+    constructor () {
+        this.isDrawn = false;
+    }
+
+    draw () {
+        if (this.isDrawn) {
+            return -1;
+        }
+
+        drawPaper();
+        this.isDrawn = true;
+    }
+}
+
+class PipelinePainter {
+    constructor (painters) {
+        this.painter_objs = painters;
+        this.n = 0;
+    } 
+
+    draw () {
+        if (this.n >= this.painter_objs.length) {
+            return;
+        }
+
+        if (!this.painter_objs[this.n].draw()) {
+            this.n++;
+        }
     }
 }
