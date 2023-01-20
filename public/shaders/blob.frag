@@ -152,7 +152,7 @@ void main() {
 
     vec3 blobs = vec3(1.);
 
-    vec3 mask = vec3(wc_blob_mask(st, u_p, .2, 0.4, seed));
+    vec3 mask = vec3(wc_blob_mask(st, u_p, .3, 0.5, seed));
     
     vec3 mixedColor = colored_blob(
         st, 
@@ -164,7 +164,7 @@ void main() {
 
     vec4 finalMix = vec4(mixedColor, 1.);
 
-    if (u_count != 0) {
+    if (u_count != 1) {
         finalMix = min(texture2D(u_tex, uv), finalMix);
     }
 

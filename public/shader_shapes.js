@@ -74,8 +74,10 @@ function drawWave (x0, y0, x1, y1, colorA, colorB, overlay = false) {
     waveShader.setUniform("u_amplitude", 0.3);
     waveShader.setUniform("u_frequency", 10.1);
     
-    waveShader.setUniform("u_fbm_frequency", 20);
-    waveShader.setUniform("u_fbm_amplitude", 0.05);
+    waveShader.setUniform("u_fbm_frequency", 5);
+    waveShader.setUniform("u_fbm_amplitude", 0.55);
+
+    waveShader.setUniform("u_iters", 5);
 
     waveShader.setUniform("u_overlay_blend", overlay);
   

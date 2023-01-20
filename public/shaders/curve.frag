@@ -156,7 +156,7 @@ float wc_curve_mask(vec2 st, vec2 start_p, vec2 end_p) {
     float multiplier = 1.2;
     float clamp_bound = 0.7;
 
-    curve *= clamp(perlin(st2) * 1., clamp_bound, 1.) * multiplier;
+    curve *= clamp(perlin(st2), clamp_bound, 1.) * multiplier;
 
     float noise_scale = 5.5;
     float l = .01 * length(vec2(perlin(st2 * noise_scale - 1.0), perlin(st2 * noise_scale + 1.0)));

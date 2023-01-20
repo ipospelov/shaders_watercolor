@@ -1,5 +1,5 @@
 class RectanglePainter {
-    constructor (x, y, width, height) {
+    constructor (x, y, width, height, colors) {
         this.width = width;
         this.height = height;
         this.x = x;
@@ -7,6 +7,12 @@ class RectanglePainter {
 
         this.currentX = x;
         this.currentY = y;
+
+        this.colors = colors;
+    }
+
+    getColor () {
+        return this.colors[0];
     }
 
     draw () {
@@ -20,16 +26,7 @@ class RectanglePainter {
 
         let nextY = this.currentY + stepLen;
 
-        let percentage = (this.currentX - this.x) / (this.width - this.x);
-
-        var c1 = color9;
-        var c2 = color10;
-        if (percentage > 0.5 && percentage < 0.9) {
-            c1 = color11;
-            c2 = color12;
-        }
-
-        drawCurve(this.currentX, this.currentY, this.currentX, nextY, c1, c2);
+        drawCurve(this.currentX, this.currentY, this.currentX, nextY, ...this.getColor());
 
         this.currentY = nextY + yMargin;
         if (this.currentY >= this.height + this.y) {
@@ -41,7 +38,7 @@ class RectanglePainter {
 }
 
 class WavePainter {
-    constructor (yMin, yMax, n, colors, overlay = false) {
+    constructor (yMin, yMax, n, colors, angleMargin, overlay = false) {
         this.yMin = yMin;
         this.yMax = yMax;
 
@@ -50,11 +47,12 @@ class WavePainter {
 
         this.margin = (yMax - yMin) / n;
 
-        this.nEachMax = 10;
+        this.nEachMax = 0;
         this.nEachCurrent = 0;
 
         this.overlay = overlay;
         this.colors = colors;
+        this.angleMargin = angleMargin;
     }
 
     getColor () {
@@ -69,12 +67,13 @@ class WavePainter {
         let y = this.yMin + this.currentN * this.margin;
 
         let xBorderMargin = -100;
-        let angleMargin = -200;
+
+        let localOverlay = this.overlay && this.nEachCurrent == 0;
         drawWave(
             xBorderMargin,
-            y - angleMargin, xBufferSize - xBorderMargin, y + angleMargin,
+            y - this.angleMargin, xBufferSize - xBorderMargin, y + this.angleMargin,
             ...this.getColor(),
-            this.overlay
+            localOverlay
         );
 
         if (this.nEachCurrent >= this.nEachMax) {
@@ -99,21 +98,24 @@ class BlobsPainter {
             return 0;
         }
 
-        var c1 = color1;
-        var c2 = color2;
+        var c1 = hexColor('#B57D94');
+        var c2 = hexColor('#F4B67C');
         
         let col_rand = fxrand();
 
-        if (col_rand < 0.3) {
-            c1 = color3;
-            c2 = color4;
-        } else if (col_rand < 0.7) {
-            c1 = color7;
-            c2 = color8;
+        if (col_rand < 0.25) {
+            c1 = hexColor('#0A2647');
+            c2 = hexColor('#5584AC');
+        } else if (col_rand < 0.5) {
+            c1 = hexColor('#3D314A');
+            c2 = hexColor('#B57D94');
+        } else if (col_rand < 0.75) {
+            c1 = hexColor('#955670');
+            c2 = hexColor('#9C818D');
         }
 
         let x = fxRandRanged(100, xBufferSize - 100);
-        let y = fxRandRanged(500, yBufferSize - 100);
+        let y = fxRandRanged(100, yBufferSize - 100);
         drawBlob(x, y, c1, c2);
 
         this.currentN++;

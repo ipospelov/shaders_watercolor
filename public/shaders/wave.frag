@@ -21,7 +21,10 @@ uniform float u_frequency;
 uniform float u_fbm_frequency;
 uniform float u_fbm_amplitude;
 
+uniform float u_iters;
+
 uniform bool u_overlay_blend;
+
 
 float inter(float a, float b, float x) {
     //return a*(1.0-x) + b*x; // Linear interpolation
@@ -123,13 +126,13 @@ float line_by_points(vec2 st, vec2 p0, vec2 p1) {
     return (p0.y - p1.y) * (st.x - p1.x) / (p0.x - p1.x) + p1.y;
 }
 
-vec3 curve_mask (vec2 st, vec2 p0, vec2 p1) {
+vec3 curve_mask (vec2 st, vec2 p0, vec2 p1, float seed) {
     vec2 st_f = st * u_frequency;
-    vec2 p1_deviation = vec2(fbm(st_f, u_seed), fbm(st_f, u_seed * 1.5));
+    vec2 p1_deviation = vec2(fbm(st_f, seed), fbm(st_f, seed * 1.5));
     p1_deviation *= distance(st, p1);
     vec2 p1_new = p1 + p1_deviation;
 
-    vec2 p0_deviation = vec2(fbm(st_f, u_seed + 1.5), fbm(st_f, u_seed * 2.5));
+    vec2 p0_deviation = vec2(fbm(st_f, seed + 1.5), fbm(st_f, seed * 2.5));
     p0_deviation *= distance(st, p0);
     vec2 p0_new = p0 + p0_deviation;
 
@@ -137,13 +140,16 @@ vec3 curve_mask (vec2 st, vec2 p0, vec2 p1) {
 
     vec3 mask = vec3(plot(st, y, u_width, 0.));
     
-    vec2 st2 = st + vec2(u_seed);
+    vec2 st2 = st + noise(vec2(seed), seed);
 
-    mask *= perlin(st * 1. + u_seed);
+    float multiplier = 1.;
+    float clamp_bound = 0.5;
+
+    mask *= clamp(perlin(st2), clamp_bound, 1.) * multiplier;
 
     float noise_scale = 0.01;
     float l = .3 * length(vec2(perlin(st2 * noise_scale - 1.0), perlin(st2 * noise_scale + 1.0)));
-    mask *= vec3(perlin(vec2(perlin(st2 * l))));
+    mask *= clamp(perlin(vec2(perlin(st2 * l))), clamp_bound, 1.) * multiplier;
 
     mask += vec3(plot(st, y, 0.005, 0.)) / 2.;
 
@@ -154,9 +160,26 @@ vec3 curve_mask (vec2 st, vec2 p0, vec2 p1) {
 }
 
 vec3 colorize (vec2 st, vec3 mask) {
-    vec3 colorized = mask * mix(u_color_1, u_color_2, paper_noise(st * 20., u_seed));
+    vec3 colorized = mask * mix(u_color_1, u_color_2, perlin(st * 1.));
     mask = vec3(1.0) - mask;
     return colorized + mask;
+}
+
+vec3 n_curves(vec2 st, vec2 p0, vec2 p1) {
+    vec3 final = vec3(1.);
+    for (float i = 0.; i < 20.; i++) {
+        if (i >= u_iters) {
+            break;
+        }
+        
+        vec3 mask = curve_mask(st, p0, p1, u_seed + i);
+        vec3 mixedColor = colorize(
+            st, 
+            mask
+        );
+        final = min(final, mixedColor);
+    }
+    return final;
 }
 
 void main() {
@@ -168,13 +191,8 @@ void main() {
 
     vec2 p0 = vec2(u_p0.x * u_resolution.x / u_resolution.y, u_p0.y);
     vec2 p1 = vec2(u_p1.x * u_resolution.x / u_resolution.y, u_p1.y);
-
-    vec3 mask = curve_mask(st, p0, p1);
     
-    vec3 mixedColor = colorize(
-        st, 
-        mask
-    );
+    vec3 mixedColor = n_curves(st, p0, p1);
 
     vec4 finalMix = vec4(mixedColor, 1.);
 

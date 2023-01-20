@@ -1,6 +1,6 @@
 let blobShader, curveShader, waveShader, paperShader;
 
-var buffer;
+var buffer, localBuffer;
 var myCanvas;
 
 var xBufferSize = 2000;
@@ -17,51 +17,54 @@ function preload () {
 };
 
 function setup () {
-	var newW, newH;
+	var w, h;
 	if (windowHeight / windowWidth >= ratio) {
-		newW = windowWidth;
-		newH = windowWidth * ratio;
+		w = windowWidth;
+		h = windowWidth * ratio;
 	} else {
-		newW = windowHeight / ratio;
-		newH = windowHeight;
+		w = windowHeight / ratio;
+		h = windowHeight;
 	}
 
-	myCanvas = createCanvas(newW, newH);
+	myCanvas = createCanvas(w, h);
 	myCanvas.id('mycanvas');
 	myCanvas.style('display', 'block');
 
-	buffer = createGraphics(xBufferSize, yBufferSize, WEBGL);
-	buffer.pixelDensity(1);
-	buffer.width = newW;
-	buffer.height = newH;
+	buffer = createBuffer(w, h);
+	localBuffer = createBuffer(w, h);
 
 	noiseSeed(0);
 	frameRate(15);
 
+	let angleMargin = 400;
 	pipelinePainter = new PipelinePainter([
-		new WavePainter(1000, 1300, 2, [
-			[color7, color8],
+		new WavePainter(900, 1200, 1, [
+			[hexColor('#B57D94'), hexColor('#F4B67C')],
+		], -angleMargin),
+		new RectanglePainter(470, 200, 330, 1900, [
+			[hexColor('#0A2647'), hexColor('#5584AC')]
 		]),
-		new RectanglePainter(530, 200, 330, 1900),
 
-		new WavePainter(600, 900, 2, [
-			[color3, color4],
-		], true),
-		new RectanglePainter(880, 200, 330, 1900),
+		new WavePainter(600, 900, 1, [
+			[hexColor('#3D314A'), hexColor('#5584AC')],
+		], angleMargin, true),
+		new RectanglePainter(1290, 200, 330, 1900, [
+			[hexColor('#0A2647'), hexColor('#5584AC')]
+		]),
 
-		new WavePainter(200, 500, 2, [
-			[color5, color6],
-		], true),
-		new RectanglePainter(1230, 200, 330, 1900),
+		new WavePainter(300, 600, 1, [
+			[hexColor('#3D314A'), hexColor('#B57D94')],
+		], -200, true),
+		new RectanglePainter(880, 200, 330, 1900, [
+			[hexColor('#955670'), hexColor('#73163E')]
+		]),
 
-		// new WavePainter(0, 500, 1, [
-		// 	[color7, color8]
-		// ], true),
-		// new WavePainter(0, 300, 2, [
-		// 	[color7, color8],
-        //     [color5, color6]
-		// ]),
-		//new BlobsPainter(50),
+
+		new WavePainter(-100, 200, 1, [
+			[hexColor('#0A2647'), hexColor('#3D314A')],
+		], angleMargin, true),
+
+		new BlobsPainter(50),
 		new PaperPainted()
 	]);
 
