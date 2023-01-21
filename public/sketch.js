@@ -38,6 +38,8 @@ function setup () {
 
 	let angleMargin = 400;
 	pipelinePainter = new PipelinePainter([
+		//new FlowPainter(),
+
 		new WavePainter(900, 1200, 1, [
 			[hexColor('#B57D94'), hexColor('#F4B67C')],
 		], -angleMargin),

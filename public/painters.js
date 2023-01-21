@@ -37,6 +37,58 @@ class RectanglePainter {
     }
 }
 
+class FlowPainter {
+    constructor () {
+        this.noise = new NoiseCache(0.0005);
+
+        this.xStart = xBufferSize / 2 - 200;
+
+        this.yStart = 100;
+
+        this.xCurrent = this.xStart;
+        this.yCurrent = this.yStart;
+
+        this.xStep = 30;
+
+        this.r = 300;
+        this.rStep = 100;
+
+        this.numYMax = 7;
+        this.numXMax = 5;
+
+        this.numYCurrent = 0;
+        this.numXCurrent = 0;
+    }
+
+    draw () {
+        if (this.numXCurrent >= this.numXMax) {
+            return 0;
+        }
+
+        if (this.numYCurrent >= this.numYMax) {
+            this.xStart += this.xStep;
+            this.xCurrent = this.xStart;
+            this.yCurrent = this.yStart;
+            this.numYCurrent = 0;
+            this.numXCurrent++;
+        }
+
+        var noiseVal = this.noise.get(this.xCurrent, this.yCurrent);
+        var ang = map(noiseVal, 0, 1, 0, Math.PI);
+
+        let xNext = this.xCurrent + this.r * Math.cos(ang);
+        let yNext = this.yCurrent + this.r * Math.sin(ang);
+
+        drawCurve(this.xCurrent, this.yCurrent, xNext, yNext, color1, color2);
+
+        this.xCurrent = xNext + this.rStep * Math.cos(ang);
+        this.yCurrent = yNext + this.rStep * Math.sin(ang);
+        this.numYCurrent++;
+
+        return 1;
+    }
+}
+
 class WavePainter {
     constructor (yMin, yMax, n, colors, angleMargin, overlay = false) {
         this.yMin = yMin;

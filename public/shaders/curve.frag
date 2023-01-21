@@ -19,6 +19,10 @@ uniform float u_width;
 uniform float u_amplitude;
 uniform float u_frequency;
 
+uniform float u_fbm_n;
+uniform float u_fbm_frequency;
+uniform float u_fbm_amplitude;
+
 float inter(float a, float b, float x) {
     //return a*(1.0-x) + b*x; // Linear interpolation
 
@@ -70,10 +74,14 @@ float fbm(vec2 p2, float p) {
     float value = .0;
     float amplitude = u_amplitude;
     
-    for (int i = 0; i < 3; i++) {
+    for (float i = 0.; i < 7.; i++) {
+        if (i >= u_fbm_n) {
+            break;
+        }
+
         value += amplitude * noise(p2, p);
-        p2 *= 2.;
-        amplitude *= .15;
+        p2 *= u_fbm_frequency;
+        amplitude *= u_fbm_amplitude;
     }
     return value / 1.;
 }

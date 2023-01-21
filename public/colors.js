@@ -1,3 +1,14 @@
+let palettes = [
+    [
+        [hexColor('#B57D94'), hexColor('#F4B67C')],
+        [hexColor('#0A2647'), hexColor('#5584AC')],
+        [hexColor('#3D314A'), hexColor('#5584AC')],
+        [hexColor('#3D314A'), hexColor('#B57D94')],
+        [hexColor('#955670'), hexColor('#73163E')],
+        [hexColor('#0A2647'), hexColor('#3D314A')],
+    ],
+]
+
 var color1 = rgb(16, 161, 157);
 var color2 = rgb(85, 132, 172);
 
