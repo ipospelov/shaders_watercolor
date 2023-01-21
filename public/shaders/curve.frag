@@ -16,6 +16,7 @@ uniform vec2 u_p0;
 uniform vec2 u_p1;
 
 uniform float u_width;
+uniform float u_blur;
 uniform float u_amplitude;
 uniform float u_frequency;
 
@@ -151,7 +152,7 @@ float wc_curve_mask(vec2 st, vec2 start_p, vec2 end_p) {
     float low_tier = u_width;
     float high_tier = u_width + 0.0002;
 
-    float higt_tier_deviation = 0.0005;
+    float higt_tier_deviation = u_blur;
     high_tier = abs(noise(st * 10., u_seed)) * higt_tier_deviation + high_tier;
 
     float curve = 1. - smoothstep(low_tier, high_tier, curve_mask);

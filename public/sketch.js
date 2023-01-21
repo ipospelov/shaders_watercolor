@@ -40,31 +40,31 @@ function setup () {
 	pipelinePainter = new PipelinePainter([
 		//new FlowPainter(),
 
-		new WavePainter(900, 1200, 1, [
-			[hexColor('#B57D94'), hexColor('#F4B67C')],
-		], -angleMargin),
-		new RectanglePainter(470, 200, 330, 1900, [
-			[hexColor('#0A2647'), hexColor('#5584AC')]
-		]),
+		// new WavePainter(900, 1200, 1, [
+		// 	[hexColor('#B57D94'), hexColor('#F4B67C')],
+		// ], -angleMargin),
+		// new RectanglePainter(470, 200, 330, 1900, [
+		// 	[hexColor('#0A2647'), hexColor('#5584AC')]
+		// ]),
 
-		new WavePainter(600, 900, 1, [
-			[hexColor('#3D314A'), hexColor('#5584AC')],
-		], angleMargin, true),
-		new RectanglePainter(1290, 200, 330, 1900, [
-			[hexColor('#0A2647'), hexColor('#5584AC')]
-		]),
+		// new WavePainter(600, 900, 1, [
+		// 	[hexColor('#3D314A'), hexColor('#5584AC')],
+		// ], angleMargin, true),
+		// new RectanglePainter(1290, 200, 330, 1900, [
+		// 	[hexColor('#0A2647'), hexColor('#5584AC')]
+		// ]),
 
-		new WavePainter(300, 600, 1, [
-			[hexColor('#3D314A'), hexColor('#B57D94')],
-		], -200, true),
-		new RectanglePainter(880, 200, 330, 1900, [
-			[hexColor('#955670'), hexColor('#73163E')]
-		]),
+		// new WavePainter(300, 600, 1, [
+		// 	[hexColor('#3D314A'), hexColor('#B57D94')],
+		// ], -200, true),
+		// new RectanglePainter(880, 200, 330, 1900, [
+		// 	[hexColor('#955670'), hexColor('#73163E')]
+		// ]),
 
 
-		new WavePainter(-100, 200, 1, [
-			[hexColor('#0A2647'), hexColor('#3D314A')],
-		], angleMargin, true),
+		// new WavePainter(-100, 200, 1, [
+		// 	[hexColor('#0A2647'), hexColor('#3D314A')],
+		// ], angleMargin, true),
 
 		new BlobsPainter(50),
 		new PaperPainted()
