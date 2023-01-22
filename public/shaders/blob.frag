@@ -138,12 +138,10 @@ void main() {
 
     vec2 st = gl_FragCoord.xy / u_resolution.xy;
     st.x *= u_resolution.x / u_resolution.y;
-
-    float mask = wc_blob_mask(st, u_p);
     
     vec3 mixedColor = colored_blob(
         st, 
-        mask,
+        wc_blob_mask(st, u_p),
         u_color_1,
         u_color_2
     );

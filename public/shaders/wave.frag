@@ -23,7 +23,7 @@ uniform float u_fbm_amplitude;
 
 uniform float u_iters;
 
-uniform bool u_overlay_blend;
+uniform bool u_overlay;
 
 
 float inter(float a, float b, float x) {
@@ -201,7 +201,7 @@ void main() {
         return;
     }
 
-    if (u_overlay_blend) {
+    if (u_overlay) {
         if (mixedColor == vec3(1., 1., 1.)) {
             finalMix = texture2D(u_tex, uv);
         }

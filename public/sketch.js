@@ -39,34 +39,47 @@ function setup () {
 	let angleMargin = 400;
 	pipelinePainter = new PipelinePainter([
 		//new FlowPainter(),
+		new RectanglePainter(470, 500, 330, 1900, [
+			[hexColor('#CFB1B7'), hexColor('#C19AA2')]
+		], {"u_blur": 0.03}),
 
-		// new WavePainter(900, 1200, 1, [
-		// 	[hexColor('#B57D94'), hexColor('#F4B67C')],
-		// ], -angleMargin),
-		// new RectanglePainter(470, 200, 330, 1900, [
-		// 	[hexColor('#0A2647'), hexColor('#5584AC')]
-		// ]),
+		new WavePainter(900, 1200, 1, [
+			[hexColor('#CEC4D4'), hexColor('#CEC4D4')],
+		], -angleMargin, {"u_overlay": true}),
 
-		// new WavePainter(600, 900, 1, [
-		// 	[hexColor('#3D314A'), hexColor('#5584AC')],
-		// ], angleMargin, true),
-		// new RectanglePainter(1290, 200, 330, 1900, [
-		// 	[hexColor('#0A2647'), hexColor('#5584AC')]
-		// ]),
+		new RectanglePainter(700, 200, 330, 1900, [
+			[hexColor('#355070'), hexColor('#355070')]
+		]),
 
-		// new WavePainter(300, 600, 1, [
-		// 	[hexColor('#3D314A'), hexColor('#B57D94')],
-		// ], -200, true),
-		// new RectanglePainter(880, 200, 330, 1900, [
-		// 	[hexColor('#955670'), hexColor('#73163E')]
-		// ]),
+		new RectanglePainter(1400, 1000, 330, 1000, [
+			[hexColor('#D7CCC1'), hexColor('#D7CCC1')]
+		], {"u_blur": 0.05}),
+
+		new WavePainter(500, 800, 1, [
+			[hexColor('#CFB1B7'), hexColor('#CFB1B7')],
+		], angleMargin, {"u_overlay": true}),
+
+		new WavePainter(350, 650, 1, [
+			[hexColor('#ACC0D8'), hexColor('#ACC0D8')],
+		], -400, {"u_overlay": true}),
+
+		new RectanglePainter(1200, 300, 330, 1900, [
+			[hexColor('#402633'), hexColor('#BA8CA4')]
+		]),
+
+		new RectanglePainter(600, 0, 200, 1300, [
+			[hexColor('#6D597A'), hexColor('#6D597A')]
+		], {"u_blur": 0.05}),
+		// new RectanglePainter(1050, 50, 300, 700, [
+		// 	[hexColor('#4C2F34'), hexColor('#4C2F34')]
+		// ], {"u_blur": 0.005}),
 
 
-		// new WavePainter(-100, 200, 1, [
-		// 	[hexColor('#0A2647'), hexColor('#3D314A')],
-		// ], angleMargin, true),
+		new WavePainter(-100, 200, 1, [
+			[hexColor('#6D597A'), hexColor('#663D52')],
+		], angleMargin, {"u_overlay": true}),
 
-		new BlobsPainter(50),
+		new BlobsPainter(100),
 		new PaperPainted()
 	]);
 

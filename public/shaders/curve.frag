@@ -35,7 +35,7 @@ float rnd(vec2 xy) {
     return fract(sin(dot(xy, vec2(12.9898 - u_seed, 78.233 + u_seed))) * (43758.5453 + u_seed));
 }
 
-float hash1(vec2 p2, float p) {
+float hash(vec2 p2, float p) {
     vec3 p3 = fract(vec3(5.3983 * p2.x, 5.4427 * p2.y, 6.9371 * p));
     p3 += dot(p3, p3.yzx + 19.19);
     return fract((p3.x + p3.y) * p3.z);
@@ -65,10 +65,10 @@ float noise(vec2 p2, float p) {
     vec2 i = floor(p2);
     vec2 f = fract(p2);
 	vec2 u = f * f * (3.0 - 2.0 * f);
-    return 1.0 - 2.0 * mix(mix(hash1(i + vec2(0.0, 0.0), p), 
-                               hash1(i + vec2(1.0, 0.0), p), u.x),
-                           mix(hash1(i + vec2(0.0, 1.0), p), 
-                               hash1(i + vec2(1.0, 1.0), p), u.x), u.y);
+    return 1.0 - 2.0 * mix(mix(hash(i + vec2(0.0, 0.0), p), 
+                               hash(i + vec2(1.0, 0.0), p), u.x),
+                           mix(hash(i + vec2(0.0, 1.0), p), 
+                               hash(i + vec2(1.0, 1.0), p), u.x), u.y);
 }
 
 float fbm(vec2 p2, float p) {
@@ -90,10 +90,10 @@ float fbm(vec2 p2, float p) {
 float paper_noise(vec2 p, float seed) {
     vec4 w = vec4(floor(p), ceil(p));
     float 
-        _00 = hash1(w.xy, seed),
-        _01 = hash1(w.xw, seed),
-        _10 = hash1(w.zy, seed),
-        _11 = hash1(w.zw, seed),
+        _00 = hash(w.xy, seed),
+        _01 = hash(w.xw, seed),
+        _10 = hash(w.zy, seed),
+        _11 = hash(w.zw, seed),
     _0 = mix(_00,_01,fract(p.y)),
     _1 = mix(_10,_11,fract(p.y));
     return mix(_0,_1,fract(p.x));
@@ -171,24 +171,20 @@ float wc_curve_mask(vec2 st, vec2 start_p, vec2 end_p) {
     float l = .01 * length(vec2(perlin(st2 * noise_scale - 1.0), perlin(st2 * noise_scale + 1.0)));
     curve *= clamp(perlin(vec2(perlin(st2 * l))), clamp_bound, 1.) * multiplier;
 
-    //curve = smoothstep(0., 1., curve);
-
     float paper_texture = paper(st2, .8, .95);
     curve *= paper_texture;
 
     return curve;
 }
 
-vec3 colorize (vec2 st, vec3 mask, vec3 color_a, vec3 color_b) {
+vec3 colorize (vec2 st, float mask, vec3 color_a, vec3 color_b) {
     vec3 colorized = mask * mix(color_a, color_b, paper_noise(st * 20., u_color_seed));
-    //vec3 coloredBlot = mask * mix(color_a, color_b, clamp(fbm1(st * 20., seed), 0., 1.));
-    mask = vec3(1.0) - mask;
-    return colorized + mask;
+    return colorized + vec3(1. - mask);
 }
 
 void main() {
     vec2 uv = gl_FragCoord.xy / u_resolution.xy;
-    uv.y = 1.0 - uv.y;
+    uv.y = 1. - uv.y;
 
     vec2 st = gl_FragCoord.xy / u_resolution.xy;
     st.x *= u_resolution.x / u_resolution.y;
@@ -196,10 +192,9 @@ void main() {
     vec2 p0 = vec2(u_p0.x * u_resolution.x / u_resolution.y, u_p0.y);
     vec2 p1 = vec2(u_p1.x * u_resolution.x / u_resolution.y, u_p1.y);
 
-    vec3 mask = vec3(wc_curve_mask(st, p0, p1));
     vec3 colorized = colorize(
         st, 
-        mask,
+        wc_curve_mask(st, p0, p1),
         u_color_1,
         u_color_2
     );
