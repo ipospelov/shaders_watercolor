@@ -34,3 +34,34 @@ function createBuffer (width, height) {
 
     return buff;
 }
+
+function getPhi(x, y) {
+    if (x > 0 & y >= 0) {
+        return Math.atan(y / x);
+    }
+    if (x > 0 & y < 0) {
+        return Math.atan(y / x) + Math.PI * 2;
+    }
+    if (x < 0) {
+        return Math.atan(y / x) + Math.PI;
+    }
+    return Math.PI / 2;
+}
+
+function getDecart (ro, phi) {
+    return [ro * Math.cos(phi), ro * Math.sin(phi)];
+}
+
+function outOfScene (x, y) {
+    return x > xBufferSize || x < 0 || y > yBufferSize || y < 0;
+}
+
+class RandParam {
+    constructor (values) {
+        this.values = values;
+    }
+
+    get () {
+        return randomFromRange(this.values);
+    }
+}

@@ -84,7 +84,7 @@ float fbm(vec2 p2, float p) {
         p2 *= u_fbm_frequency;
         amplitude *= u_fbm_amplitude;
     }
-    return value / 1.;
+    return value;
 }
 
 float paper_noise(vec2 p, float seed) {

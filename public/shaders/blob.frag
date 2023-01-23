@@ -112,12 +112,15 @@ float wc_blob_mask (vec2 st, vec2 position) {
     float color2 = smoothstep(tier, tier - tier_delta, noise_val); // Чёрные всплески   
     color2 -= smoothstep(tier, -0.3, noise_val); // hole
 
-    float wc_stains = perlin(st * 2.); // + 0.4;
+    float multiplier = 0.8;
+    float clamp_bound = 0.5;
+
+    float wc_stains = clamp(perlin(st * 2.), clamp_bound, 1.) * multiplier;
     color2 = color2 * wc_stains;
-    color = color * wc_stains * 1.;
+    color = color * wc_stains;
 
     float l = 0.05 * length(vec2(perlin(st2 - u_seed), perlin(st2+ u_seed)));
-    float wc_texture_mask = perlin(vec2(perlin(st * l))) * 1.;
+    float wc_texture_mask = clamp(perlin(vec2(perlin(st * l))), clamp_bound, 1.) * multiplier;
     color2 = color2 * wc_texture_mask;
     color = color * wc_texture_mask * 1.5;
 
@@ -138,10 +141,12 @@ void main() {
 
     vec2 st = gl_FragCoord.xy / u_resolution.xy;
     st.x *= u_resolution.x / u_resolution.y;
+
+    vec2 p = vec2(u_p.x * u_resolution.x / u_resolution.y, u_p.y);
     
     vec3 mixedColor = colored_blob(
         st, 
-        wc_blob_mask(st, u_p),
+        wc_blob_mask(st, p),
         u_color_1,
         u_color_2
     );

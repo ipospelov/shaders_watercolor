@@ -151,21 +151,7 @@ class BlobsPainter {
             return 0;
         }
 
-        var c1 = hexColor('#CFB1B7');
-        var c2 = hexColor('#C19AA2');
-        
-        let col_rand = fxrand();
-
-        if (col_rand < 0.25) {
-            c1 = hexColor('#CEC4D4');
-            c2 = hexColor('#5584AC');
-        } else if (col_rand < 0.5) {
-            c1 = hexColor('#D7CCC1');
-            c2 = hexColor('#B57D94');
-        } else if (col_rand < 0.75) {
-            c1 = hexColor('#BA8CA4');
-            c2 = hexColor('#9C818D');
-        }
+        let [c1, c2] = randomFromRange(palettes[0]);
 
         let x = fxRandRanged(100, xBufferSize - 100);
         let y = fxRandRanged(100, yBufferSize - 100);
@@ -187,11 +173,162 @@ class PaperPainted {
 
     draw () {
         if (this.isDrawn) {
-            return -1;
+            return 0;
         }
 
         drawPaper();
         this.isDrawn = true;
+    }
+}
+
+class LeafPainter {
+    constructor (x0, y0, x1, y1, n, uniforms) {
+        this.x0 = x0;
+        this.y0 = y0;
+        this.x1 = x1;
+        this.y1 = y1;
+
+        this.n = n;
+        this.uniforms = uniforms;
+
+        this.nCurrent = 0;
+    }
+
+    draw () {
+        if (this.nCurrent >= this.n) {
+            return 0;
+        }
+        if (outOfScene(this.x0, this.y0) & outOfScene(this.x1, this.y1)) {
+            return 0;
+        }
+
+        let colRand = fxrand();
+        let [c1, c2] = palettes[0][3];
+        if (colRand < 0.5) {
+            [c1, c2] = palettes[0][4];
+        }
+
+        let uniforms = {...this.uniforms, "u_seed": fxrand()};
+        drawCurve(this.x0, this.y0, this.x1, this.y1, c1, c2, uniforms);
+        this.nCurrent++;
+
+        return 1;
+    }
+}
+
+class LeafLinePainter {
+    constructor (x, y, r, ang, nLines, uniforms) {
+        this.x = x;
+        this.y = y;
+        this.r = r;
+        this.ang = ang;
+
+        this.nLines = nLines;
+        this.uniforms = uniforms;
+
+        this.nCurrentLines = 0;
+
+        this.setLeafPainter();
+    }
+
+    setLeafPainter () {
+        let [x, y] = getDecart(this.r, this.ang);
+        x += this.x;
+        y += this.y;
+
+        let n = fxRandRanged(3, 7);
+        this.leafPainter = new LeafPainter(this.x, this.y, x, y, n, this.uniforms);
+        this.x = x;
+        this.y = y;
+    }
+
+    draw () {
+        if (this.nCurrentLines >= this.nLines) {
+            return 0;
+        }
+
+        let isDrawn = this.leafPainter.draw();
+        if (!isDrawn) {
+            this.nCurrentLines++;
+            this.setLeafPainter();
+        }
+        return 1;
+    }
+}
+
+class FlowerPainter {
+    constructor (x, y, ang0, ang1, r, nLeafs, uniforms) {
+        this.xc = x;
+        this.yc = y;
+
+        this.ang0 = ang0;
+        this.ang1 = ang1;
+        this.r = r;
+
+        this.nLeafs = nLeafs;
+        this.nCurrentLeafs = 0;
+
+        this.uniforms = uniforms;
+
+        this.leafPainter = this.getLeafPainter();
+    }
+
+    getLeafPainter () {
+        let angStep = (this.ang1 - this.ang0) / this.nLeafs;
+        let ang = this.ang0 + angStep * this.nCurrentLeafs;
+
+        let r = this.r + fxRandRanged(-this.r / 10, -this.r / 10);
+        return new LeafLinePainter(this.xc, this.yc, r, ang, 6, this.uniforms);
+    }
+
+    draw () {
+        if (this.nCurrentLeafs >= this.nLeafs) {
+            return 0;
+        }
+
+        let isDrawn = this.leafPainter.draw();
+        if (!isDrawn) {
+            this.nCurrentLeafs++;
+            this.leafPainter = this.getLeafPainter();
+        }
+        return 1;
+    }
+}
+
+class CircledBlobsPainter {
+    constructor (x, y, n) {
+        this.x = x;
+        this.y = y;
+        this.n = n;
+        this.nCurrent = 0;
+    }
+
+    draw () {
+        if (this.nCurrent >= this.n) {
+            return 0;
+        }
+
+        let ang = fxRandRanged(0, 2 * Math.PI);
+        let r = fxRandRanged(0, yBufferSize) * fxrand() * fxrand() + 700 * fxrand();
+
+        let [x, y] = getDecart(r, ang);
+
+        x += this.x;
+        y += this.y;
+
+        let [c1, c2] = randomFromRange(palettes[0]);
+
+        let uniforms = {
+            "u_size": fxRandRanged(0.5, 1.3),
+            "u_radius": fxRandRanged(10, 40),
+            "u_noise_multiplier": fxRandRanged(0.3, 0.9)
+        }
+
+        drawBlob(x, y, c1, c2, uniforms);
+
+        this.nCurrent++;
+
+        return 1;
     }
 }
 

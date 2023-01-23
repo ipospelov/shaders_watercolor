@@ -7,7 +7,11 @@ function drawShader (shader, uniforms) {
     shader.setUniform("u_time", millis() / 1000.0);
 
     for (let key in uniforms) {
-        shader.setUniform(key, uniforms[key]);
+        let val = uniforms[key];
+        if (val instanceof RandParam) {
+            val = val.get();
+        }
+        shader.setUniform(key, val);
     }
 
     buffer.rect(0, 0, xBufferSize, yBufferSize);
@@ -39,13 +43,13 @@ function drawCurve (x0, y0, x1, y1, colorA, colorB, uniformsOverload = {}) {
         "u_color_seed": fxrand(),
         "u_color_1": colorA,
         "u_color_2": colorB,
-        "u_width": 0.006,
+        "u_width": 0.001,
         "u_blur": 0.0005, // 0.05 - 0.0005
         "u_amplitude": 0.5,
-        "u_frequency": 50,
+        "u_frequency": 7,
         "u_fbm_n": 3,
-        "u_fbm_frequency": 1.3,
-        "u_fbm_amplitude": 0.4,
+        "u_fbm_frequency": 1.5,
+        "u_fbm_amplitude": 0.3,
         "u_p0": [x0 / xBufferSize, y0 / yBufferSize],
         "u_p1": [x1 / xBufferSize, y1 / yBufferSize],
         ...uniformsOverload
@@ -60,8 +64,8 @@ function drawWave (x0, y0, x1, y1, colorA, colorB, uniformsOverload = {}) {
         "u_width": 0.5,
         "u_amplitude": 0.3,
         "u_frequency": 10.1,
-        "u_fbm_frequency": 2,
-        "u_fbm_amplitude": 0.1,
+        "u_fbm_frequency": 5,
+        "u_fbm_amplitude": 0.5,
         "u_iters": 7,
         "u_overlay": false,
         "u_p0": [x0 / xBufferSize, y0 / yBufferSize],

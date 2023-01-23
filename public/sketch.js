@@ -1,6 +1,6 @@
 let blobShader, curveShader, waveShader, paperShader;
 
-var buffer, localBuffer;
+var buffer;
 var myCanvas;
 
 var xBufferSize = 2000;
@@ -31,60 +31,69 @@ function setup () {
 	myCanvas.style('display', 'block');
 
 	buffer = createBuffer(w, h);
-	localBuffer = createBuffer(w, h);
 
 	noiseSeed(0);
 	frameRate(15);
 
-	let angleMargin = 400;
+	let angleMargin = 1400;
 	pipelinePainter = new PipelinePainter([
-		//new FlowPainter(),
-		new RectanglePainter(470, 500, 330, 1900, [
-			[hexColor('#CFB1B7'), hexColor('#C19AA2')]
-		], {"u_blur": 0.03}),
+		//new CircledBlobsPainter(xBufferSize / 2 + 500, yBufferSize / 2, 150),
+		new FlowerPainter(xBufferSize / 2 + 500, yBufferSize / 2, 0, Math.PI - Math.PI / 8, 700, 7, {
+			"u_width": new RandParam([0.001, 0.0005]),
+			"u_blur": new RandParam([0.01, 0.0005]),
+			"u_color_1": palettes[0][4][0],
+			"u_color_2": palettes[0][4][1],
+		}),
+		new FlowerPainter(xBufferSize / 2 + 500, yBufferSize / 2, Math.PI + Math.PI / 8, 2 * Math.PI, 700, 7, {
+			"u_width": new RandParam([0.001, 0.0005]),
+			"u_blur": new RandParam([0.01, 0.0005]),
+			"u_color_1": palettes[0][4][0],
+			"u_color_2": palettes[0][4][1],
+		}),
+
+		new FlowerPainter(xBufferSize / 2 + 500, yBufferSize / 2, Math.PI / 10, Math.PI + Math.PI / 10, 1200, 6, {
+			"u_color_1": palettes[0][0][0],
+			"u_color_2": palettes[0][0][1],
+			"u_width": 0.002,
+			"u_blur": 0.01,
+			"u_amplitude": 0.5,
+			"u_frequency": 50,
+			"u_fbm_frequency": 1.3,
+			"u_fbm_amplitude": 0.3,
+		}),
+		new FlowerPainter(xBufferSize / 2 + 500, yBufferSize / 2, Math.PI + Math.PI / 10, 2 * Math.PI + Math.PI / 10, 1200, 6, {
+			"u_color_1": palettes[0][6][0],
+			"u_color_2": palettes[0][6][1],
+			"u_width": 0.002,
+			"u_blur": 0.01,
+			"u_amplitude": 0.5,
+			"u_frequency": 50,
+			"u_fbm_frequency": 1.3,
+			"u_fbm_amplitude": 0.3,
+		}),
 
 		new WavePainter(900, 1200, 1, [
-			[hexColor('#CEC4D4'), hexColor('#CEC4D4')],
-		], -angleMargin, {"u_overlay": true}),
-
-		new RectanglePainter(700, 200, 330, 1900, [
-			[hexColor('#355070'), hexColor('#355070')]
-		]),
-
-		new RectanglePainter(1400, 1000, 330, 1000, [
-			[hexColor('#D7CCC1'), hexColor('#D7CCC1')]
-		], {"u_blur": 0.05}),
+			palettes[0][0],
+		], angleMargin),
 
 		new WavePainter(500, 800, 1, [
-			[hexColor('#CFB1B7'), hexColor('#CFB1B7')],
-		], angleMargin, {"u_overlay": true}),
+			palettes[0][2],
+		], angleMargin),
 
-		new WavePainter(350, 650, 1, [
-			[hexColor('#ACC0D8'), hexColor('#ACC0D8')],
-		], -400, {"u_overlay": true}),
+		new WavePainter(350, 650, 3, [
+			palettes[0][3],
+		], angleMargin),
 
-		new RectanglePainter(1200, 300, 330, 1900, [
-			[hexColor('#402633'), hexColor('#BA8CA4')]
-		]),
-
-		new RectanglePainter(600, 0, 200, 1300, [
-			[hexColor('#6D597A'), hexColor('#6D597A')]
-		], {"u_blur": 0.05}),
-		// new RectanglePainter(1050, 50, 300, 700, [
-		// 	[hexColor('#4C2F34'), hexColor('#4C2F34')]
-		// ], {"u_blur": 0.005}),
-
-
-		new WavePainter(-100, 200, 1, [
-			[hexColor('#6D597A'), hexColor('#663D52')],
-		], angleMargin, {"u_overlay": true}),
+		new WavePainter(-100, 200, 3, [
+			palettes[0][4],
+		], angleMargin),
+		new WavePainter(-500, -200, 5, [
+			palettes[0][5],
+		], angleMargin),
 
 		new BlobsPainter(100),
 		new PaperPainted()
 	]);
-
-
-	//drawPaper();
 };
 
 function windowResized() {
