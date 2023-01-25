@@ -66,7 +66,7 @@ function drawWave (x0, y0, x1, y1, colorA, colorB, uniformsOverload = {}) {
         "u_frequency": 10.1,
         "u_fbm_frequency": 5,
         "u_fbm_amplitude": 0.5,
-        "u_iters": 7,
+        "u_iters": 5,
         "u_overlay": false,
         "u_p0": [x0 / xBufferSize, y0 / yBufferSize],
         "u_p1": [x1 / xBufferSize, y1 / yBufferSize],

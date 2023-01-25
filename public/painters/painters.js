@@ -91,47 +91,40 @@ class FlowPainter {
 }
 
 class WavePainter {
-    constructor (yMin, yMax, n, colors, angleMargin, uniforms) {
-        this.yMin = yMin;
-        this.yMax = yMax;
+    constructor (y, sceneHeight, ang, n, colors, uniforms) {
+        Object.assign(this, { y, n, colors, uniforms });
+        this.currentN = 0;
 
-        this.n = n;
-        this.currentN = n;
+        this.xMargin = 100;
 
-        this.margin = (yMax - yMin) / n;
+        this.hShift = Math.tan(ang) * (xBufferSize / 2 + this.xMargin);
+        this.hStep = sceneHeight / max(1, n - 1);
 
         this.nEachMax = 0;
         this.nEachCurrent = 0;
-
-        this.colors = colors;
-        this.angleMargin = angleMargin;
-
-        this.uniforms = uniforms;
     }
 
     getColor () {
-        return this.colors[(this.n - this.currentN) % this.colors.length];
+        return this.colors[this.currentN % this.colors.length];
     }
 
     draw () {
-        if (this.currentN == 0) {
+        if (this.currentN >= this.n) {
             return 0;
         }
 
-        let y = this.yMin + this.currentN * this.margin;
-
-        let xBorderMargin = -100;
+        let y = this.y - this.currentN * this.hStep;
 
         drawWave(
-            xBorderMargin,
-            y - this.angleMargin, xBufferSize - xBorderMargin, y + this.angleMargin,
+            -this.xMargin, y - this.hShift,
+            xBufferSize + this.xMargin, y + this.hShift,
             ...this.getColor(),
             this.uniforms
         );
 
         if (this.nEachCurrent >= this.nEachMax) {
             this.nEachCurrent = 0;
-            this.currentN--;
+            this.currentN++;
         } else {
             this.nEachCurrent++;
         }
@@ -181,120 +174,6 @@ class PaperPainted {
     }
 }
 
-class LeafPainter {
-    constructor (x0, y0, x1, y1, n, uniforms) {
-        this.x0 = x0;
-        this.y0 = y0;
-        this.x1 = x1;
-        this.y1 = y1;
-
-        this.n = n;
-        this.uniforms = uniforms;
-
-        this.nCurrent = 0;
-    }
-
-    draw () {
-        if (this.nCurrent >= this.n) {
-            return 0;
-        }
-        if (outOfScene(this.x0, this.y0) & outOfScene(this.x1, this.y1)) {
-            return 0;
-        }
-
-        let colRand = fxrand();
-        let [c1, c2] = palettes[0][3];
-        if (colRand < 0.5) {
-            [c1, c2] = palettes[0][4];
-        }
-
-        let uniforms = {...this.uniforms, "u_seed": fxrand()};
-        drawCurve(this.x0, this.y0, this.x1, this.y1, c1, c2, uniforms);
-        this.nCurrent++;
-
-        return 1;
-    }
-}
-
-class LeafLinePainter {
-    constructor (x, y, r, ang, nLines, uniforms) {
-        this.x = x;
-        this.y = y;
-        this.r = r;
-        this.ang = ang;
-
-        this.nLines = nLines;
-        this.uniforms = uniforms;
-
-        this.nCurrentLines = 0;
-
-        this.setLeafPainter();
-    }
-
-    setLeafPainter () {
-        let [x, y] = getDecart(this.r, this.ang);
-        x += this.x;
-        y += this.y;
-
-        let n = fxRandRanged(3, 7);
-        this.leafPainter = new LeafPainter(this.x, this.y, x, y, n, this.uniforms);
-        this.x = x;
-        this.y = y;
-    }
-
-    draw () {
-        if (this.nCurrentLines >= this.nLines) {
-            return 0;
-        }
-
-        let isDrawn = this.leafPainter.draw();
-        if (!isDrawn) {
-            this.nCurrentLines++;
-            this.setLeafPainter();
-        }
-        return 1;
-    }
-}
-
-class FlowerPainter {
-    constructor (x, y, ang0, ang1, r, nLeafs, uniforms) {
-        this.xc = x;
-        this.yc = y;
-
-        this.ang0 = ang0;
-        this.ang1 = ang1;
-        this.r = r;
-
-        this.nLeafs = nLeafs;
-        this.nCurrentLeafs = 0;
-
-        this.uniforms = uniforms;
-
-        this.leafPainter = this.getLeafPainter();
-    }
-
-    getLeafPainter () {
-        let angStep = (this.ang1 - this.ang0) / this.nLeafs;
-        let ang = this.ang0 + angStep * this.nCurrentLeafs;
-
-        let r = this.r + fxRandRanged(-this.r / 10, -this.r / 10);
-        return new LeafLinePainter(this.xc, this.yc, r, ang, 6, this.uniforms);
-    }
-
-    draw () {
-        if (this.nCurrentLeafs >= this.nLeafs) {
-            return 0;
-        }
-
-        let isDrawn = this.leafPainter.draw();
-        if (!isDrawn) {
-            this.nCurrentLeafs++;
-            this.leafPainter = this.getLeafPainter();
-        }
-        return 1;
-    }
-}
-
 class CircledBlobsPainter {
     constructor (x, y, n) {
         this.x = x;
@@ -329,22 +208,5 @@ class CircledBlobsPainter {
         this.nCurrent++;
 
         return 1;
-    }
-}
-
-class PipelinePainter {
-    constructor (painters) {
-        this.painter_objs = painters;
-        this.n = 0;
-    } 
-
-    draw () {
-        if (this.n >= this.painter_objs.length) {
-            return;
-        }
-
-        if (!this.painter_objs[this.n].draw()) {
-            this.n++;
-        }
     }
 }

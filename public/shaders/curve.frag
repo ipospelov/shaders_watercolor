@@ -94,9 +94,9 @@ float paper_noise(vec2 p, float seed) {
         _01 = hash(w.xw, seed),
         _10 = hash(w.zy, seed),
         _11 = hash(w.zw, seed),
-    _0 = mix(_00,_01,fract(p.y)),
-    _1 = mix(_10,_11,fract(p.y));
-    return mix(_0,_1,fract(p.x));
+    _0 = mix(_00, _01, fract(p.y)),
+    _1 = mix(_10, _11, fract(p.y));
+    return mix(_0, _1, fract(p.x));
 }
 
 float paper_fbm (vec2 p) {
