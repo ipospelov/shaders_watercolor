@@ -9,7 +9,8 @@ class LeafPainter {
             return 0;
         }
         if (outOfScene(this.x0, this.y0) & outOfScene(this.x1, this.y1)) {
-            return 0;
+            this.nCurrent++;
+            return 1;
         }
 
         let [c1, c2] = this.colors;
@@ -17,25 +18,6 @@ class LeafPainter {
         drawCurve(this.x0, this.y0, this.x1, this.y1, c1, c2, uniforms);
         this.nCurrent++;
 
-        return 1;
-    }
-}
-
-class NestedPainter {
-    constructor () {
-        this.nCurrent = 0;
-        this.painters = [];
-    }
-
-    draw () {
-        if (this.nCurrent >= this.painters.length) {
-            return 0;
-        }
-
-        let isDrawn = this.painters[this.nCurrent].draw();
-        if (!isDrawn) {
-            this.nCurrent++;
-        }
         return 1;
     }
 }
@@ -68,6 +50,24 @@ class LeafFlowerPainter extends NestedPainter {
                 colors=colors, uniforms=uniforms
                 );
             this.painters.push(painter);
+        }
+    }
+}
+
+class LeafFlowPainter extends NestedPainter {
+    constructor (x, y, r, ang, nLeafs, nLines, colors, uniforms) {
+        super();
+        let xPrev = x, yPrev = y;
+        let [xPolar, yPolar] = getDecart(r, ang);
+        
+        for (let i = 0; i < nLeafs; i++) {
+            let xNext = xPrev + xPolar;
+            let yNext = yPrev + yPolar;
+            let painter = new LeafPainter(xPrev, yPrev, xNext, yNext, nLines, colors, uniforms);
+            this.painters.push(painter);
+
+            xPrev = xNext;
+            yPrev = yNext;
         }
     }
 }

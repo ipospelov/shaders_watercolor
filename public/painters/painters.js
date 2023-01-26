@@ -1,38 +1,17 @@
-class RectanglePainter {
-    constructor (x, y, width, height, colors, uniforms) {
-        this.width = width;
-        this.height = height;
-        this.x = x;
-        this.y = y;
-
-        this.currentX = x;
-        this.currentY = y;
-
-        this.colors = colors;
-        this.uniforms = uniforms;
-    }
-
-    getColor () {
-        return this.colors[0];
+class NestedPainter {
+    constructor () {
+        this.nCurrent = 0;
+        this.painters = [];
     }
 
     draw () {
-        if (this.currentX >= this.width + this.x) {
+        if (this.nCurrent >= this.painters.length) {
             return 0;
         }
 
-        let stepLen = 500// + fxRandRanged(-50, 50);
-        let yMargin = 100// + fxRandRanged(-30, 30);
-        let xMargin = 80;
-
-        let nextY = this.currentY + stepLen;
-
-        drawCurve(this.currentX, this.currentY, this.currentX, nextY, ...this.getColor(), this.uniforms);
-
-        this.currentY = nextY + yMargin;
-        if (this.currentY >= this.height + this.y) {
-            this.currentY = this.y;
-            this.currentX += xMargin;
+        let isDrawn = this.painters[this.nCurrent].draw();
+        if (!isDrawn) {
+            this.nCurrent++;
         }
         return 1;
     }
@@ -95,7 +74,7 @@ class WavePainter {
         Object.assign(this, { y, n, colors, uniforms });
         this.currentN = 0;
 
-        this.xMargin = 100;
+        this.xMargin = 150;
 
         this.hShift = Math.tan(ang) * (xBufferSize / 2 + this.xMargin);
         this.hStep = sceneHeight / max(1, n - 1);
@@ -149,7 +128,7 @@ class BlobsPainter {
         let x = fxRandRanged(100, xBufferSize - 100);
         let y = fxRandRanged(100, yBufferSize - 100);
         let uniforms = {
-            "u_size": 0.3 + fxrand() * 0.3
+            "u_size": 0.3 + fxrand() * 0.4
         }
         drawBlob(x, y, c1, c2, uniforms);
 
@@ -198,7 +177,7 @@ class CircledBlobsPainter {
         let [c1, c2] = randomFromRange(palettes[0]);
 
         let uniforms = {
-            "u_size": fxRandRanged(0.5, 1.3),
+            "u_size": fxRandRanged(0.5, 0.6),
             "u_radius": fxRandRanged(10, 40),
             "u_noise_multiplier": fxRandRanged(0.3, 0.9)
         }

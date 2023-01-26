@@ -151,7 +151,7 @@ vec3 curve_mask (vec2 st, vec2 p0, vec2 p1, float seed) {
     float l = .3 * length(vec2(perlin(st2 * noise_scale - 1.0), perlin(st2 * noise_scale + 1.0)));
     mask *= clamp(perlin(vec2(perlin(st2 * l))), clamp_bound, 1.) * multiplier;
 
-    mask += vec3(plot(st, y, 0.005, 0.)) / 2.;
+    mask += vec3(plot(st, y, 0.005, 0.)) / 1.5;
 
     float paper_texture = paper(st2 - 1., 1., 0.95);
     mask *= paper_texture;
