@@ -9,8 +9,8 @@ class LeafPainter {
             return 0;
         }
         if (outOfScene(this.x0, this.y0) & outOfScene(this.x1, this.y1)) {
-            this.nCurrent++;
-            return 1;
+            // this.nCurrent++;
+            return 0;
         }
 
         let [c1, c2] = this.colors;
@@ -42,7 +42,9 @@ class LeafLinePainter extends NestedPainter {
 class LeafFlowerPainter extends NestedPainter {
     constructor (x, y, ang0, ang1, r, nPetals, nLeafs, nLines, colors, uniforms = {}) {
         super();
-        let angStep = (ang1 - ang0) / max(1, nPetals - 1);
+        ang0 = degreeToRadian(ang0);
+        ang1 = degreeToRadian(ang1);
+        let angStep = (ang1 - ang0) / max(1, nPetals);
         for (let i = 0; i < nPetals; i++) {
             let ang = ang0 + angStep * i;
             let painter = new LeafLinePainter(
@@ -54,20 +56,27 @@ class LeafFlowerPainter extends NestedPainter {
     }
 }
 
-class LeafFlowPainter extends NestedPainter {
-    constructor (x, y, r, ang, nLeafs, nLines, colors, uniforms) {
+class LeafFlowerMarginPainter extends NestedPainter {
+    constructor (x, y, ang0, ang1, rMargin, petalLen, nPetals, nLines, colors, uniforms = {}) {
         super();
-        let xPrev = x, yPrev = y;
-        let [xPolar, yPolar] = getDecart(r, ang);
-        
-        for (let i = 0; i < nLeafs; i++) {
-            let xNext = xPrev + xPolar;
-            let yNext = yPrev + yPolar;
-            let painter = new LeafPainter(xPrev, yPrev, xNext, yNext, nLines, colors, uniforms);
-            this.painters.push(painter);
+        ang0 = degreeToRadian(ang0);
+        ang1 = degreeToRadian(ang1);
+        let angStep = (ang1 - ang0) / max(1, nPetals);
 
-            xPrev = xNext;
-            yPrev = yNext;
+        for (let i = 0; i < nPetals; i++) {
+            let rl = rMargin + fxRandRanged(-rMargin * 0.3, rMargin * 0.3);
+            let lenl = petalLen + fxRandRanged(-petalLen * 0.3, petalLen * 0.3);
+            let ang = ang0 + angStep * i;
+            let [x0, y0] = getDecart(rl, ang);
+            let [x1, y1] = getDecart(rl + lenl, ang);
+
+            x0 += x;
+            y0 += y;
+            x1 += x;
+            y1 += y;
+            
+            let painter = new LeafPainter(x0, y0, x1, y1, nLines, colors, uniforms);
+            this.painters.push(painter);
         }
     }
 }

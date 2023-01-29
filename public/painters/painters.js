@@ -167,7 +167,7 @@ class CircledBlobsPainter {
         }
 
         let ang = fxRandRanged(0, 2 * Math.PI);
-        let r = fxRandRanged(0, yBufferSize) * fxrand() * fxrand() + 700 * fxrand();
+        let r = fxRandRanged(0, yBufferSize) * fxrand() * fxrand() + 200 * fxrand();
 
         let [x, y] = getDecart(r, ang);
 
@@ -187,5 +187,44 @@ class CircledBlobsPainter {
         this.nCurrent++;
 
         return 1;
+    }
+}
+
+class SquarePainter {
+    constructor (x, y, h, colors, uniforms) {
+        Object.assign(this, { colors, uniforms });
+        this.nCurrent = 0;
+        this.coords = [
+            [x, y, x + h, y],
+            [x + h, y, x + h, y + h],
+            [x, y + h, x + h, y + h],
+            [x, y, x, y + h]
+        ]
+    }
+
+    draw () {
+        if (this.nCurrent >= this.coords.length) {
+            return 0;
+        }
+
+        let uniforms = {...this.uniforms, "u_seed": fxrand()};
+        drawCurve(...this.coords[this.nCurrent], ...this.colors, uniforms);
+
+        this.nCurrent++;
+        return 1;
+    }
+}
+
+class FilledSquarePainter extends NestedPainter{
+    constructor (x, y, h, step, n, colors, uniforms) {
+        super();
+
+        for (let i = 0; i < n; i++) {
+            let xl = x + step * i;
+            let yl = y + step * i;
+            let hl = h - step * 2 * i;
+            let painter = new SquarePainter(xl, yl, hl, colors, uniforms);
+            this.painters.push(painter);
+        }
     }
 }

@@ -65,3 +65,7 @@ class RandParam {
         return randomFromRange(this.values);
     }
 }
+
+function degreeToRadian(degree) {
+    return degree * Math.PI / 180;
+}

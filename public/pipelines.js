@@ -28,89 +28,110 @@ function linePoint(ang, h, r) {
 }
 
 function buildPipeline () {
-    let ang = -Math.PI / 4;
+    let ang = -Math.PI / 8;
     let h = yBufferSize / 2 - 800;
     let stripeShift = -1000;
 
+    let w = 1200;
+    let x = xBufferSize / 2 - w / 2;
+
     let pipeline = [
+        // new LeafFlowerPainter(
+        //     500, yBufferSize - 500,
+        //     0, 360, 400, 15, 1, 6, palettes[1][0], {
+        //         "u_width": 0.001,
+        //         "u_amplitude": 0.7,
+        //         "u_frequency": 1,
+        //         "u_fbm_n": 3,
+        //         "u_fbm_frequency": 2.5,
+        //         "u_fbm_amplitude": 0.3,
+        //     }),
+
         new WavePainter(
-            h, 1700, ang, 6, palettes[0], {
-                "u_width": 0.3,
+            1200, 1000, ang, 5, palettes[0], {
+                "u_width": 0.4,
                 "u_amplitude": 0.3,
-                "u_frequency": 20.1,
-                "u_fbm_frequency": 2,
-                "u_fbm_amplitude": 0.05,
-                "u_overlay": false,
+                "u_frequency": 10.1,
+                "u_fbm_frequency": 5,
+                "u_fbm_amplitude": 0.55,
+                "u_iters": 8,
+            }),
+        new WavePainter(
+            1000, 1500, -ang + Math.PI / 5, 5, palettes[0], {
+                "u_width": 0.4,
+                "u_amplitude": 0.3,
+                "u_frequency": 10.1,
+                "u_fbm_frequency": 5,
+                "u_fbm_amplitude": 0.55,
                 "u_iters": 5,
             }),
 
-        new LineStripePainter(
-            ...linePoint(ang, h + 350, stripeShift),
-            ang, 500, 100, 4, 5, 70, palettes[0][2], {
-                "u_width": 0.004,
-                "u_blur": 0.0005,
-                "u_amplitude": .2,
-                "u_frequency": 50,
-                "u_fbm_n": 5,
-                "u_fbm_frequency": 2,
-                "u_fbm_amplitude": 0.2,
-            }),
-        new LineStripePainter(
-            ...linePoint(ang, h + 780, stripeShift + 700),
-            ang + 3 * Math.PI / 2, 150, 100, 10, 7, 50, palettes[0][4], {
-                "u_width": 0.003,
-                "u_blur": 0.0005,
-                "u_amplitude": .5,
-                "u_frequency": 50,
+        new LeafFlowerMarginPainter(
+            1, yBufferSize,
+            270, 360, 0, 800, 12, 7, palettes[0][4], {
+                "u_width": 0.001,
+                "u_amplitude": 0.4,
+                "u_frequency": 1,
                 "u_fbm_n": 3,
-                "u_fbm_frequency": 2,
-                "u_fbm_amplitude": 0.15,
+                "u_fbm_frequency": 2.5,
+                "u_fbm_amplitude": 0.3,
+                "u_blur": 0.0005
             }),
-        new LineStripePainter(
-            ...linePoint(ang, h + 920, stripeShift + 820),
-            ang, 300, 100, 4, 5, 50, palettes[0][0], {
-                "u_width": 0.003,
-                "u_blur": 0.0005,
-                "u_amplitude": .5,
-                "u_frequency": 30,
+        new LeafFlowerMarginPainter(
+            10, yBufferSize - 10,
+            270, 360, 600, 450, 13, 5, palettes[0][2], {
+                "u_width": 0.0015,
+                "u_amplitude": 0.6,
+                "u_frequency": 1,
                 "u_fbm_n": 3,
-                "u_fbm_frequency": 2,
-                "u_fbm_amplitude": 0.15,
+                "u_fbm_frequency": 2.5,
+                "u_fbm_amplitude": 0.3,
             }),
-        new LineStripePainter(
-            ...linePoint(ang, h + 1150, stripeShift + 1300),
-            ang + 3 * Math.PI / 2, 500, 100, 3, 3, 70, palettes[0][3], {
-                "u_width": 0.004,
-                "u_blur": 0.0005,
-                "u_amplitude": .1,
-                "u_frequency": 30,
+        new LeafFlowerMarginPainter(
+            10, yBufferSize - 10,
+            270, 360, 1000, 350, 23, 7, palettes[0][1], {
+                "u_width": 0.0005,
+                "u_amplitude": 0.6,
+                "u_frequency": 1,
                 "u_fbm_n": 3,
-                "u_fbm_frequency": 2,
-                "u_fbm_amplitude": 0.15,
+                "u_fbm_frequency": 2.5,
+                "u_fbm_amplitude": 0.3,
             }),
+
+        new LeafFlowerMarginPainter(
+            10, yBufferSize - 10,
+            270, 360, 1200, 250, 24, 7, palettes[0][0], {
+                "u_width": 0.0005,
+                "u_amplitude": 0.6,
+                "u_frequency": 1,
+                "u_fbm_n": 3,
+                "u_fbm_frequency": 2.5,
+                "u_fbm_amplitude": 0.3,
+            }),
+        
+        //new CircledBlobsPainter(400, yBufferSize - 100, 50),
+
+        // new ManyStripesPainter(x, 300, w, yBufferSize - 600, 5, palettes[0][3], {
+        //     "u_amplitude": .5,
+        //     "u_frequency": 50,
+        //     "u_fbm_n": 3,
+        //     "u_fbm_frequency": 2,
+        //     "u_fbm_amplitude": 0.15,
+        // }),
+
         // new LineStripePainter(
-        //     ...linePoint(ang, h - 1000, -200),
-        //     ang, 500, 100, 5, 5, 20, palettes[0][1], {
-        //         "u_width": 0.001,
+        //     ...linePoint(ang, h + 1150, stripeShift + 1300),
+        //     ang + 3 * Math.PI / 2, 500, 100, 3, 3, 70, palettes[0][3], {
+        //         "u_width": 0.004,
         //         "u_blur": 0.0005,
-        //         "u_amplitude": .5,
+        //         "u_amplitude": .1,
         //         "u_frequency": 30,
         //         "u_fbm_n": 3,
         //         "u_fbm_frequency": 2,
         //         "u_fbm_amplitude": 0.15,
         //     }),
 
-        // new LeafFlowerPainter(
-        //     ...linePoint(ang, h, 500),
-        //     ang, ang + Math.PI,
-        //     700, 10, 1, 5, palettes[0][5], {
-        //         "u_amplitude": 0.5,
-        //         "u_frequency": 50,
-        //         "u_fbm_frequency": 1.3,
-        //         "u_fbm_amplitude": .3,
-        //         "u_width": 0.003,
-        //         "u_blur": 0.002
-        //     }),
+
         new BlobsPainter(100),
         new PaperPainted(),
     ];

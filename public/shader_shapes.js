@@ -36,14 +36,15 @@ function drawBlob (x, y, colorA, colorB, uniformsOverload = {}) {
         ...uniformsOverload
     });
 }
-  
+ 
+let defaultCurveWidth = 0.003;
 function drawCurve (x0, y0, x1, y1, colorA, colorB, uniformsOverload = {}) {
     drawShader(curveShader, {
         "u_seed": 0.1,
         "u_color_seed": fxrand(),
         "u_color_1": colorA,
         "u_color_2": colorB,
-        "u_width": 0.001,
+        "u_width": defaultCurveWidth,
         "u_blur": 0.0005, // 0.05 - 0.0005
         "u_amplitude": 0.5,
         "u_frequency": 7,

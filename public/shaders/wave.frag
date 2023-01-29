@@ -142,7 +142,7 @@ vec3 curve_mask (vec2 st, vec2 p0, vec2 p1, float seed) {
     
     vec2 st2 = st + noise(vec2(seed), seed);
 
-    float multiplier = 1.;
+    float multiplier = 1.1;
     float clamp_bound = 0.5;
 
     mask *= clamp(perlin(st2), clamp_bound, 1.) * multiplier;

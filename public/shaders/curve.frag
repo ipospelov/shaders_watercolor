@@ -167,8 +167,8 @@ float wc_curve_mask(vec2 st, vec2 start_p, vec2 end_p) {
 
     curve *= clamp(perlin(st2), clamp_bound, 1.) * multiplier;
 
-    float noise_scale = 5.5;
-    float l = .01 * length(vec2(perlin(st2 * noise_scale - 1.0), perlin(st2 * noise_scale + 1.0)));
+    float noise_scale = 0.01;
+    float l = .3 * length(vec2(perlin(st2 * noise_scale - 1.0), perlin(st2 * noise_scale + 1.0)));
     curve *= clamp(perlin(vec2(perlin(st2 * l))), clamp_bound, 1.) * multiplier;
 
     float paper_texture = paper(st2, .8, .95);
