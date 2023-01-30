@@ -80,3 +80,35 @@ class LeafFlowerMarginPainter extends NestedPainter {
         }
     }
 }
+
+class LeafOnLinePainter extends NestedPainter {
+    constructor (x, y0, y1, colors, uniforms) {
+        super();
+        
+        this.painters.push(
+            new LinePainter(x, y0, x, y1, colors, uniforms)
+        );
+
+        let lineLen = Math.abs(y0 - y1);
+        let h = fxRandRanged(0.1 * lineLen, 0.3 * lineLen);
+        this.painters.push(
+            new LeafPainter(x, y1, x, y1 - h, 17, colors, uniforms)
+        );
+    }
+}
+
+class ManyLeafOnLinePainter extends NestedPainter {
+    constructor (x, y0, y1, xBias, yBias, n, uniforms) {
+        super();
+        
+        for (let i = 0; i < n; i++) {
+            let xl = x + symmetricalRand(xBias);
+            let yl = y1 + symmetricalRand(yBias);
+
+            let colors = randomFromRange(palettes[0]);
+
+            let painter = new LeafOnLinePainter(xl, y0, yl, colors, uniforms);
+            this.painters.push(painter);
+        }
+    }
+}

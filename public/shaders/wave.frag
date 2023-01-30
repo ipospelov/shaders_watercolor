@@ -202,7 +202,7 @@ void main() {
     }
 
     if (u_overlay) {
-        if (mixedColor == vec3(1., 1., 1.)) {
+        if (mixedColor == vec3(1.)) {
             finalMix = texture2D(u_tex, uv);
         }
         gl_FragColor = finalMix;

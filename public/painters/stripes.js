@@ -127,7 +127,8 @@ class ManyStripesPainter extends NestedPainter{
         for (let i = 0; i < nStripes; i++) {
             let yl = (hl + yMargin) * i + y;
             let xl = x + fxRandRanged(-200, 200);
-            let painter = new RectanglePainter(xl, yl, w, hl, 1, palettes[1][i], uniforms);
+            let colors = palettes[1][i % palettes[1].length];
+            let painter = new RectanglePainter(xl, yl, w, hl, 1, colors, uniforms);
             this.painters.push(painter);
         }
     }

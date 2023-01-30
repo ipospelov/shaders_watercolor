@@ -5,6 +5,12 @@ function fxRandRanged (minV, maxV) {
     let diff = maxVal - minVal;
     return fxrand() * diff + minVal;
 }
+
+function symmetricalRand(val) {
+    return fxRandRanged(-val, val);
+}
+
+
 function randomInt(minV, maxV) {
     let diff = maxV - minV + 1;
     return Math.floor(fxrand() * 0.9999 * diff + minV);

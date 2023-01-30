@@ -40,7 +40,7 @@ function drawBlob (x, y, colorA, colorB, uniformsOverload = {}) {
 let defaultCurveWidth = 0.003;
 function drawCurve (x0, y0, x1, y1, colorA, colorB, uniformsOverload = {}) {
     drawShader(curveShader, {
-        "u_seed": 0.1,
+        "u_seed": fxrand(),
         "u_color_seed": fxrand(),
         "u_color_1": colorA,
         "u_color_2": colorB,

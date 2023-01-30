@@ -19,25 +19,27 @@ class NestedPainter {
 
 class FlowPainter {
     constructor () {
-        this.noise = new NoiseCache(0.0005);
+        this.noise = new NoiseCache(0.0002, 0);
 
-        this.xStart = xBufferSize / 2 - 200;
+        this.xStart = xBufferSize / 2 - 600;
 
-        this.yStart = 100;
+        this.yStart = 1000;
 
         this.xCurrent = this.xStart;
         this.yCurrent = this.yStart;
 
         this.xStep = 30;
 
-        this.r = 300;
+        this.r = 100;
         this.rStep = 100;
 
-        this.numYMax = 7;
-        this.numXMax = 5;
+        this.numYMax = 17;
+        this.numXMax = 15;
 
         this.numYCurrent = 0;
         this.numXCurrent = 0;
+
+        this.seed = fxrand();
     }
 
     draw () {
@@ -59,10 +61,19 @@ class FlowPainter {
         let xNext = this.xCurrent + this.r * Math.cos(ang);
         let yNext = this.yCurrent + this.r * Math.sin(ang);
 
-        drawCurve(this.xCurrent, this.yCurrent, xNext, yNext, color1, color2);
+        drawCurve(this.xCurrent, this.yCurrent, xNext, yNext, ...palettes[0][1], {
+            //"u_seed": fxrand(),
+            "u_amplitude": .5,
+            "u_frequency": 50,
+            "u_fbm_n": 3,
+            "u_fbm_frequency": 2,
+            "u_fbm_amplitude": 0.15,
+        });
 
-        this.xCurrent = xNext + this.rStep * Math.cos(ang);
-        this.yCurrent = yNext + this.rStep * Math.sin(ang);
+        let rs = this.rStep //+ fxRandRanged(-50, 50);
+
+        this.xCurrent = xNext + rs * Math.cos(ang);
+        this.yCurrent = yNext + rs * Math.sin(ang);
         this.numYCurrent++;
 
         return 1;
@@ -226,5 +237,22 @@ class FilledSquarePainter extends NestedPainter{
             let painter = new SquarePainter(xl, yl, hl, colors, uniforms);
             this.painters.push(painter);
         }
+    }
+}
+
+class LinePainter {
+    constructor (x0, y0, x1, y1, colors, uniforms) {
+        Object.assign(this, { x0, y0, x1, y1, colors, uniforms });
+        this.isDrawn = false;
+    }
+
+    draw () {
+        if (this.isDrawn) {
+            return 0;
+        }
+
+        drawCurve(this.x0, this.y0, this.x1, this.y1, ...this.colors, this.uniforms);
+        this.isDrawn = true;
+        return 0;
     }
 }
