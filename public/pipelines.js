@@ -36,7 +36,10 @@ function buildPipeline () {
     let y = yBufferSize / 2 - h / 2;
 
     let pipeline = [
-        new ManyLeafOnLinePainter(800, 0, yBufferSize - 600, 500, 600, 15, {
+        //new ManyLeafOnLinePainter(),
+        //new LeafOnIsolinePainter(),
+        //new RectFlowPainter(),
+        new RectFlowPainter(300, yBufferSize - 300, xBufferSize - 300, 500, 8, palettes[0][1], {
             "u_width": 0.001,
             "u_amplitude": 0.5,
             "u_frequency": 1.5,

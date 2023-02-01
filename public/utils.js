@@ -75,3 +75,36 @@ class RandParam {
 function degreeToRadian(degree) {
     return degree * Math.PI / 180;
 }
+
+function getIsolineNextPoint(xStart, yStart, margin, direction = 0) {
+    let noiseMap = function (x, y) {
+        let scale = 0.0005;
+        return noise(x * scale, y * scale);
+    }
+
+    let currHeight = noiseMap(xStart, yStart);
+    let minDiff = Infinity;
+    let xNext, yNext, angleNext;
+
+    for (let angle = -90 + direction; angle < 90 + direction; angle += 2) {
+        // if (Math.abs(prevAngle - angle) == 180) {
+        //     continue
+        // }
+        let angleNorm = degreeToRadian(angle);
+
+        let xPretend = xStart + margin * Math.cos(angleNorm);
+        let yPretend = yStart + margin * Math.sin(angleNorm);
+
+        let height = noiseMap(xPretend, yPretend);
+        let currDiff = Math.abs(currHeight - height);
+
+        if (currDiff < minDiff) {
+            minDiff = currDiff;
+            xNext = xPretend;
+            yNext = yPretend;
+            angleNext = angle;
+        }
+    }
+
+    return [xNext, yNext, angleNext];
+}

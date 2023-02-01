@@ -1,12 +1,19 @@
 let palettes = [
-    // [
+    [
+        [hexColor('#C874D9'), hexColor('#DAAFE3')],
+        [hexColor('#E1BBC9'), hexColor('#C77F98')],
+        [hexColor('#CAA1E2'), hexColor('#76319E')],
+        [hexColor('#1B1F3B'), hexColor('#656FB8')],
+        [hexColor('#454ADE'), hexColor('#515491')],
+    ],
+    [
         
-    //     [hexColor('#E8D2AE'), hexColor('#E8D2AE')],
-    //     [hexColor('#D7B29D'), hexColor('#D7B29D')],
-    //     [hexColor('#DAAAB9'), hexColor('#DAAAB9')],
-    //     [hexColor('#CB8589'), hexColor('#CB8589')],
-    //     [hexColor('#796465'), hexColor('#796465')],
-    // ],
+        [hexColor('#E8D2AE'), hexColor('#E8D2AE')],
+        [hexColor('#D7B29D'), hexColor('#D7B29D')],
+        [hexColor('#DAAAB9'), hexColor('#DAAAB9')],
+        [hexColor('#CB8589'), hexColor('#CB8589')],
+        [hexColor('#796465'), hexColor('#796465')],
+    ],
     [
         [hexColor('#FFF9EC'), hexColor('#FFDF99')],
         [hexColor('#FFDCCC'), hexColor('#FFB999')],

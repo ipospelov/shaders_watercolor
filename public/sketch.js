@@ -33,7 +33,7 @@ function setup () {
 	buffer = createBuffer(w, h);
 
 	//noiseSeed(0);
-	frameRate(15);
+	//frameRate(15);
 
 	pipelinePainter = new PipelinePainter(
 		buildPipeline()
