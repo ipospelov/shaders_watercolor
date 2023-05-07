@@ -211,8 +211,8 @@ void main() {
 
     // if (finalMix != vec4(1.) && texture2D(u_tex, uv) != vec4(1.)) {
     //     vec4 minMix = min(texture2D(u_tex, uv), finalMix);
-    //     vec4 avgMix = mix(texture2D(u_tex, uv), finalMix, vec4(0.5));
-    //     gl_FragColor = min(minMix, avgMix);
+    //     vec4 avgMix = mix(texture2D(u_tex, uv), finalMix, vec4(0.1));
+    //     gl_FragColor = mix(minMix, avgMix, vec4(0.5));
     //     return;    
     // }
 

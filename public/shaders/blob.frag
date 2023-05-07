@@ -75,12 +75,21 @@ float paper_noise(vec2 p, float seed) {
     return mix(_0,_1,fract(p.x));
 }
 
+// float fbm (vec2 p) {
+//     float o = 0.;
+//     for (float i = 0.; i < 3.; i++) {
+//         o += paper_noise(.1 * p, 0.) / 3.;
+//         o += .2 * exp(-2. * abs(sin(.02 * p.x + .01 * p.y))) / 4.;
+//         p *= 2.;
+//     }
+//     return o;
+// }
 float fbm (vec2 p) {
     float o = 0.;
-    for (float i = 0.; i < 3.; i++) {
-        o += paper_noise(.1 * p, 0.) / 3.;
-        o += .2 * exp(-2. * abs(sin(.02 * p.x + .01 * p.y))) / 4.;
-        p *= 2.;
+    for (float i = 0.; i < 7.; i++) {
+        o += paper_noise(.1 * p, 0.) / 7.;  // o += paper_noise(.9 * p, 0.) / 3.;
+        o += .2 * exp(-2. * abs(sin(.02 * p.x + .01 * p.y))) / 7.;
+        p *= 1.6;  //p *= 9.;
     }
     return o;
 }
@@ -91,8 +100,13 @@ float grad (vec2 p) {
     return e - w;
 }
 
+float sigm(float v) {
+    return 1. / (1. + exp(-v));
+}
+
 float paper (vec2 st, float intensity) {
-    return 0.95 + intensity * grad(st * 3000.);
+    //return 0.5 + intensity * grad(st * 3000.);
+    return 0.45 + sigm(3. * grad(st * 1500.));
 }
 
 
@@ -100,7 +114,7 @@ float wc_blob_mask (vec2 st, vec2 position) {
     vec2 st2 = st - position;
 
     float r = length(st2) * u_radius;
-    float noise_val = u_noise_multiplier * perlin(st2 + u_seed) + r;
+    float noise_val = u_noise_multiplier * perlin(st2 * 2. + u_seed) + r;
 
     float tier = u_size;
     float tier_delta = 0.1;
@@ -110,10 +124,10 @@ float wc_blob_mask (vec2 st, vec2 position) {
     color = 1. - color;
 
     float color2 = smoothstep(tier, tier - tier_delta, noise_val); // Чёрные всплески   
-    color2 -= smoothstep(tier, -0.3, noise_val); // hole
+    //color2 -= smoothstep(tier, -0.3, noise_val); // hole
 
-    float multiplier = 0.8;
-    float clamp_bound = 0.5;
+    float multiplier = 1.5;
+    float clamp_bound = 0.1;
 
     float wc_stains = clamp(perlin(st * 2.), clamp_bound, 1.) * multiplier;
     color2 = color2 * wc_stains;
@@ -124,9 +138,15 @@ float wc_blob_mask (vec2 st, vec2 position) {
     color2 = color2 * wc_texture_mask;
     color = color * wc_texture_mask * 1.5;
 
-    float paper_texture = paper(st - u_seed, 1.);
+    float paper_texture = paper(st - u_seed, 0.6);
 
-    return (color + color2) * paper_texture;
+    ///float result = mix((color + color2), paper_texture, 0.5);
+    float result = (color + color2) * paper_texture;
+
+    // result = 1. / (1. + exp(-result));
+    //result = clamp(result, 0., 0.9);
+
+    return result;
 }
 
 vec3 colored_blob (vec2 st, float mask, vec3 color_a, vec3 color_b) {
@@ -157,5 +177,6 @@ void main() {
         finalMix = min(texture2D(u_tex, uv), finalMix);
     }
 
+    // gl_FragColor = vec4(vec3(wc_texture_mask), 1.);
     gl_FragColor = finalMix;
 }

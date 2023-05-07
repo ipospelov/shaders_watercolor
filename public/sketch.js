@@ -38,6 +38,7 @@ function setup () {
 	pipelinePainter = new PipelinePainter(
 		buildPipeline()
 	);
+	buffer.background(255);
 };
 
 function windowResized() {
@@ -59,6 +60,10 @@ function windowResized() {
 
 function draw () {
 	pipelinePainter.draw();
+	// drawBlob(100, 100, palettes[4][0], palettes[4][1], {
+	// 	"u_size": 0.3
+	// });
+	
 };
 
 function keyTyped() {

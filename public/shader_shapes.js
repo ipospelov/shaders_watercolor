@@ -21,6 +21,7 @@ function drawShader (shader, uniforms) {
 function drawPaper () {
     drawShader(paperShader, {
         "u_bg_color": rgb(249, 251, 255)
+        //"u_bg_color": rgb(255, 255, 255)
     })
 }
 

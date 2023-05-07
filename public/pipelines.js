@@ -36,20 +36,10 @@ function buildPipeline () {
     let y = yBufferSize / 2 - h / 2;
 
     let pipeline = [
-        //new ManyLeafOnLinePainter(),
-        //new LeafOnIsolinePainter(),
-        //new RectFlowPainter(),
-        new RectFlowPainter(300, yBufferSize - 300, xBufferSize - 300, 500, 8, palettes[0][1], {
-            "u_width": 0.001,
-            "u_amplitude": 0.5,
-            "u_frequency": 1.5,
-            "u_fbm_n": 3,
-            "u_fbm_frequency": 1.5,
-            "u_fbm_amplitude": 0.3,
-        }),
-
+        // new FlowPainter(),
+        new ContinuousLinePainter(palettes[1][1]),
         new WavePainter(
-            1200, 1000, ang, 5, palettes[0], {
+            1200, 1000, ang, 5, palettes[2], {
                 "u_width": 0.4,
                 "u_amplitude": 0.3,
                 "u_frequency": 10.1,
@@ -58,7 +48,7 @@ function buildPipeline () {
                 "u_iters": 8,
             }),
         new WavePainter(
-            1000, 1500, -ang + Math.PI / 5, 5, palettes[0], {
+            1000, 1500, -ang + Math.PI / 5, 5, palettes[2], {
                 "u_width": 0.4,
                 "u_amplitude": 0.3,
                 "u_frequency": 10.1,
@@ -66,7 +56,24 @@ function buildPipeline () {
                 "u_fbm_amplitude": 0.55,
                 "u_iters": 5,
             }),
-        new BlobsPainter(100),
+
+        // new BlobsPainter(10),
+        // new LinePainter(100, 500, xBufferSize - 100, 500, palettes[5][0], {
+        //     "u_width": 0.004,
+        //     "u_blur": 0.001,
+        //     "u_amplitude": 0.1,
+        //     "u_frequency": 7,
+        //     "u_fbm_frequency": 1.5,
+        //     "u_fbm_amplitude": 0.3,
+        // }),
+        // new LinePainter(100, 700, xBufferSize - 100, 700, palettes[6][1], {
+        //     "u_width": 0.002,
+        //     "u_blur": 0.001,
+        //     "u_amplitude": 0.1,
+        //     "u_frequency": 7,
+        //     "u_fbm_frequency": 1.5,
+        //     "u_fbm_amplitude": 0.3,
+        // }),
         new PaperPainted(),
     ];
     

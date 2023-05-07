@@ -134,18 +134,45 @@ class BlobsPainter {
             return 0;
         }
 
-        let [c1, c2] = randomFromRange(palettes[0]);
+        let [c1, c2] = randomFromRange(palettes[1]);
 
-        let x = fxRandRanged(100, xBufferSize - 100);
-        let y = fxRandRanged(100, yBufferSize - 100);
+        // let x = fxRandRanged(100, xBufferSize - 100);
+        // let y = fxRandRanged(100, yBufferSize - 100);
         let uniforms = {
             "u_size": 0.3 + fxrand() * 0.4
         }
-        drawBlob(x, y, c1, c2, uniforms);
 
+        // let [c1, c2] = palettes[1][0];
+
+        let x = fxRandRanged(100, xBufferSize - 100);
+        let y = fxRandRanged(100, yBufferSize - 100);
+        // let uniforms = {
+        //     "u_size": 1.3,
+        //     //"u_seed": 0.2,
+        // }
+
+        drawBlob(x, y, c1, c2, uniforms);
+        
         this.currentN++;
 
         return 1;
+    }
+}
+
+class BlobPainter {
+    constructor (x, y, colors, uniforms) {
+        Object.assign(this, { x, y, colors, uniforms });
+        this.isDrawn = false;
+    }
+
+    draw () {
+        if (this.isDrawn) {
+            return 0;
+        }
+
+        drawBlob(this.x, this.y, ...this.colors, this.uniforms);
+        this.isDrawn = true;
+        return 0;
     }
 }
 
@@ -164,81 +191,6 @@ class PaperPainted {
     }
 }
 
-class CircledBlobsPainter {
-    constructor (x, y, n) {
-        this.x = x;
-        this.y = y;
-        this.n = n;
-        this.nCurrent = 0;
-    }
-
-    draw () {
-        if (this.nCurrent >= this.n) {
-            return 0;
-        }
-
-        let ang = fxRandRanged(0, 2 * Math.PI);
-        let r = fxRandRanged(0, yBufferSize) * fxrand() * fxrand() + 200 * fxrand();
-
-        let [x, y] = getDecart(r, ang);
-
-        x += this.x;
-        y += this.y;
-
-        let [c1, c2] = randomFromRange(palettes[0]);
-
-        let uniforms = {
-            "u_size": fxRandRanged(0.5, 0.6),
-            "u_radius": fxRandRanged(10, 40),
-            "u_noise_multiplier": fxRandRanged(0.3, 0.9)
-        }
-
-        drawBlob(x, y, c1, c2, uniforms);
-
-        this.nCurrent++;
-
-        return 1;
-    }
-}
-
-class SquarePainter {
-    constructor (x, y, h, colors, uniforms) {
-        Object.assign(this, { colors, uniforms });
-        this.nCurrent = 0;
-        this.coords = [
-            [x, y, x + h, y],
-            [x + h, y, x + h, y + h],
-            [x, y + h, x + h, y + h],
-            [x, y, x, y + h]
-        ]
-    }
-
-    draw () {
-        if (this.nCurrent >= this.coords.length) {
-            return 0;
-        }
-
-        let uniforms = {...this.uniforms, "u_seed": fxrand()};
-        drawCurve(...this.coords[this.nCurrent], ...this.colors, uniforms);
-
-        this.nCurrent++;
-        return 1;
-    }
-}
-
-class FilledSquarePainter extends NestedPainter{
-    constructor (x, y, h, step, n, colors, uniforms) {
-        super();
-
-        for (let i = 0; i < n; i++) {
-            let xl = x + step * i;
-            let yl = y + step * i;
-            let hl = h - step * 2 * i;
-            let painter = new SquarePainter(xl, yl, hl, colors, uniforms);
-            this.painters.push(painter);
-        }
-    }
-}
 
 class LinePainter {
     constructor (x0, y0, x1, y1, colors, uniforms) {
@@ -256,3 +208,35 @@ class LinePainter {
         return 0;
     }
 }
+
+class ContinuousLinePainter extends NestedPainter {
+    constructor (colors) {
+        super();
+        this.uniforms = {
+            // "u_seed": 0.1,
+            "u_width": 0.001,
+            // "u_blur": 0.001,
+            "u_amplitude": .5,
+            "u_frequency": 17,
+            "u_fbm_frequency": 1.5,
+            "u_fbm_amplitude": 0.3,
+        }
+
+        let x0 = xBufferSize / 2;
+        let y0 = 200;
+
+        for (let i = 0; i < 5; i++) {
+            let x1 = x0;
+            let y1 = y0 + 400;
+            this.painters.push(
+                new LinePainter(x0, y0, x1, y1, colors, this.uniforms),
+                new BlobPainter(x1, y1, colors, {})
+            )
+
+            x0 = x1;
+            y0 = y1;
+        }
+    }
+}
+
+// class 

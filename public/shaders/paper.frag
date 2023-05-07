@@ -29,10 +29,10 @@ float paper_noise(vec2 p, float seed) {
 
 float fbm (vec2 p) {
     float o = 0.;
-    for (float i = 0.; i < 3.; i++) {
-        o += paper_noise(.1 * p, 0.) / 3.;
-        o += .2 * exp(-2. * abs(sin(.02 * p.x + .01 * p.y))) / 4.;
-        p *= 2.;
+    for (float i = 0.; i < 7.; i++) {
+        o += paper_noise(.1 * p, 0.) / 7.;  // o += paper_noise(.9 * p, 0.) / 3.;
+        o += .2 * exp(-2. * abs(sin(.02 * p.x + .01 * p.y))) / 7.;
+        p *= 1.6;  //p *= 9.;
     }
     return o;
 }
@@ -40,11 +40,16 @@ float fbm (vec2 p) {
 float grad (vec2 p) {
     float e = fbm(p + vec2(1., 0.));
     float w = fbm(p - vec2(1., 0.));
-    return e-w;
+    return (e-w); // return 3.*(e-w);
+}
+
+float sigm(float v) {
+    return 1. / (1. + exp(-v));
 }
 
 float paper (vec2 st, float intensity) {
-    return 0.95 + intensity * grad(st * 3000.);
+    return 0.45 + sigm(3. * grad(st * 1500.));
+    //return .9 + intensity * grad(st * 1000.);
 }
 
 void main() {
@@ -54,7 +59,7 @@ void main() {
     vec2 st = gl_FragCoord.xy / u_resolution.xy;
     st.x *= u_resolution.x / u_resolution.y;
 
-    float paper_texture = paper(st, .8);
+    float paper_texture = paper(st, 1.9);
     vec3 paper_colored = mix(u_bg_color, vec3(paper_texture), vec3(0.5));
 
     vec4 finalMix = vec4(paper_colored, 1.);

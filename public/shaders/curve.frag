@@ -146,7 +146,7 @@ float curve_mask(vec2 st, vec2 start_p, vec2 end_p) {
 
 float wc_curve_mask(vec2 st, vec2 start_p, vec2 end_p) {
     float curve_mask = curve_mask(st, start_p, end_p);
-    curve_mask *= clamp(perlin(st * 5. + u_seed), 0.5, 1.);
+    curve_mask *= perlin(st * 3. + u_seed) * .8;
 
     float hole_delta = 0.002;
     float low_tier = u_width;
@@ -204,6 +204,8 @@ void main() {
     if (u_count != 1) {
         finalMix = min(texture2D(u_tex, uv), finalMix);
     }
+
+
 
     gl_FragColor = finalMix;
 }
